@@ -23,6 +23,10 @@ public class Vector3D {
         return dot(new Vector3D(p1));
     }
 
+    public double length() {
+        return this.endPoint.distance0();
+    }
+
     @Override
     public String toString() {
         return "Vector3D{" +

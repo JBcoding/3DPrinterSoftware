@@ -69,21 +69,17 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         int startingHeight = -3;
         int endingHeight = 5;
 
-        BaseObject b = new UnitCylinder();
-        /*b = new Triangle(
-                new Point3D(0, 0, 0),
-                new Point3D(2, 2, 2),
-                new Point3D(-2, 2, -2)
-        );*/
+        MultiPartObject b = new DeformedBaseObject(new UnitCylinder());
+        Matrix4x4 m = Matrix4x4.getMovementMatrix(new Vector3D(0, 1.2, 0))
+                .multiply(Matrix4x4.getMovementMatrix(new Vector3D(0, 0, 1)))
+                .multiply(Matrix4x4.getRotationMatrixAroundXAxis(Math.PI / 2.1))
+                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(2));
+        b.setDeformationMatrix(m);
         Vector3D planeNormal = new Vector3D(0, 0, 1);
-        Matrix4x4 m = Matrix4x4.getRotationMatrixAroundYAxis(Math.PI / 8);
-        planeNormal = m.multiply(planeNormal);
-
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
             Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
             for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
-                pi = m.inverse().multiply(pi);
                 List<Point3D> points = pi.getPoints(100);
                 double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
                 double[] yPoints = points.stream().mapToDouble(Point3D::getY).toArray();

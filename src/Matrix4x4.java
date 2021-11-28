@@ -4,10 +4,12 @@ import java.util.stream.Collectors;
 public class Matrix4x4 {
     protected double[][] matrix;
 
-    public static final Matrix4x4 IDENTITY = new Matrix4x4(new double[][]{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}});
-
     public Matrix4x4(double[][] matrix) {
         this.matrix = deepCopy2dDoubleArray(matrix);
+    }
+
+    public static Matrix4x4 IDENTITY() {
+        return new Matrix4x4(new double[][]{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}});
     }
 
     public static Matrix4x4 getRotationMatrixAroundXAxis(double theta) {
@@ -103,6 +105,14 @@ public class Matrix4x4 {
 
     public PlaneIntersection multiply(PlaneIntersection pi) {
         return pi.multiplyWithMatrix4x4(this);
+    }
+
+    public Plane multiply(Plane p) {
+        Vector3D normalVector = p.getNormalVector();
+        Vector3D newNormalVector = multiply(normalVector).subtract(multiply(new Vector3D(0, 0, 0)));
+        Vector3D offsetVector = new Vector3D(multiply(new Point3D(0, 0, 0)));
+        double newPlaneDistance = offsetVector.dot(newNormalVector) + p.planeDistance;
+        return new Plane(newNormalVector, newPlaneDistance);
     }
 
     public Matrix4x4 inverse() {
