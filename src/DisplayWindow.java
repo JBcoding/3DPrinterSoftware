@@ -65,16 +65,27 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 20;
+        int linesPerUnit = 5;
         int startingHeight = -3;
         int endingHeight = 5;
 
-        MultiPartObject b = new DeformedBaseObject(new UnitCylinder());
+        MultiPartObject b1 = new DeformedBaseObject(new UnitCylinder());
         Matrix4x4 m = Matrix4x4.getMovementMatrix(new Vector3D(0, 1.2, 0))
                 .multiply(Matrix4x4.getMovementMatrix(new Vector3D(0, 0, 1)))
-                .multiply(Matrix4x4.getRotationMatrixAroundXAxis(Math.PI / 2.1))
+                .multiply(Matrix4x4.getRotationMatrixAroundXAxis(Math.PI / 2.5))
                 .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(2));
-        b.setDeformationMatrix(m);
+        b1.setDeformationMatrix(m);
+
+        MultiPartObject b2 = new DeformedBaseObject(new UnitSphere());
+        b2.setDeformationMatrix(
+                Matrix4x4.getMovementMatrix(new Vector3D(0, 1, 1))
+                .multiply(Matrix4x4.getStretchingMatrixInTheXAxis(1.2))
+                .multiply(Matrix4x4.getStretchingMatrixInTheYAxis(1.2))
+                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(1.2))
+        );
+
+        MultiPartObject b = new UnionObject(b1, b2);
+
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
@@ -112,8 +123,8 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         frame_count += 1;
 
         xAngle = (frame_count / 2.0) % 360;
-        yAngle = 22.5;
-        position = new Vector3D(Math.cos(xAngle / 180 * Math.PI + Math.PI / 2) * 7, 3, Math.sin(xAngle / 180 * Math.PI + Math.PI / 2) * 7);
+        yAngle = 0;
+        position = new Vector3D(Math.cos(xAngle / 180 * Math.PI + Math.PI / 2) * 7, 1, Math.sin(xAngle / 180 * Math.PI + Math.PI / 2) * 7);
 
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);

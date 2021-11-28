@@ -93,9 +93,13 @@ public class Matrix4x4 {
     }
 
     public Vector3D multiply(Vector3D v) {
-        double x = matrix[0][0] * v.getX() + matrix[0][1] * v.getY() + matrix[0][2] * v.getZ() + matrix[0][3];
-        double y = matrix[1][0] * v.getX() + matrix[1][1] * v.getY() + matrix[1][2] * v.getZ() + matrix[1][3];
-        double z = matrix[2][0] * v.getX() + matrix[2][1] * v.getY() + matrix[2][2] * v.getZ() + matrix[2][3];
+        return multiply(v, 1);
+    }
+
+    public Vector3D multiply(Vector3D v, double w) {
+        double x = matrix[0][0] * v.getX() + matrix[0][1] * v.getY() + matrix[0][2] * v.getZ() + matrix[0][3] * w;
+        double y = matrix[1][0] * v.getX() + matrix[1][1] * v.getY() + matrix[1][2] * v.getZ() + matrix[1][3] * w;
+        double z = matrix[2][0] * v.getX() + matrix[2][1] * v.getY() + matrix[2][2] * v.getZ() + matrix[2][3] * w;
         return new Vector3D(x, y, z);
     }
 
@@ -103,16 +107,52 @@ public class Matrix4x4 {
         return multiply(new Vector3D(p)).toPoint3D();
     }
 
+    public Point3D multiply(Point3D p, double w) {
+        return multiply(new Vector3D(p), w).toPoint3D();
+    }
+
     public PlaneIntersection multiply(PlaneIntersection pi) {
         return pi.multiplyWithMatrix4x4(this);
     }
 
     public Plane multiply(Plane p) {
-        Vector3D normalVector = p.getNormalVector();
-        Vector3D newNormalVector = multiply(normalVector).subtract(multiply(new Vector3D(0, 0, 0)));
-        Vector3D offsetVector = new Vector3D(multiply(new Point3D(0, 0, 0)));
-        double newPlaneDistance = offsetVector.dot(newNormalVector) + p.planeDistance;
-        return new Plane(newNormalVector, newPlaneDistance);
+        // https://stackoverflow.com/a/7706849
+        Vector3D n = p.getNormalVector();
+        Point3D o = n.toPoint3D().scale(p.planeDistance);
+
+        Point3D newO = multiply(o);
+        Vector3D newN = this.inverse().transpose().multiply(n, 0);
+        newN = newN.normalise();
+
+        double d = newO.dot(newN);
+
+        return new Plane(newN, d);
+    }
+
+    public Matrix4x4 transpose() {
+        double[][] tran = new double[4][4];
+
+        tran[0][0] = matrix[0][0];
+        tran[0][1] = matrix[1][0];
+        tran[0][2] = matrix[2][0];
+        tran[0][3] = matrix[3][0];
+
+        tran[1][0] = matrix[0][1];
+        tran[1][1] = matrix[1][1];
+        tran[1][2] = matrix[2][1];
+        tran[1][3] = matrix[3][1];
+
+        tran[2][0] = matrix[0][2];
+        tran[2][1] = matrix[1][2];
+        tran[2][2] = matrix[2][2];
+        tran[2][3] = matrix[3][2];
+
+        tran[3][0] = matrix[0][3];
+        tran[3][1] = matrix[1][3];
+        tran[3][2] = matrix[2][3];
+        tran[3][3] = matrix[3][3];
+
+        return new Matrix4x4(tran);
     }
 
     public Matrix4x4 inverse() {

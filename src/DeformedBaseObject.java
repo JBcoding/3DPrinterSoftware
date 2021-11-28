@@ -15,13 +15,7 @@ public class DeformedBaseObject extends MultiPartObject {
     }
 
     @Override
-    public Optional<List<PlaneIntersection>> getPlaneIntersection(Plane p) {
-        Matrix4x4 inverseDeformationMatrix = deformationMatrix.inverse();
-        Plane deformedPlane = inverseDeformationMatrix.multiply(p);
-        Optional<List<PlaneIntersection>> planeIntersections = baseObject.getPlaneIntersection(deformedPlane);
-        if (!planeIntersections.isPresent()) {
-            return Optional.empty();
-        }
-        return Optional.of(planeIntersections.get().stream().map(deformationMatrix::multiply).collect(Collectors.toList()));
+    public Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p) {
+        return baseObject.getPlaneIntersection(p);
     }
 }
