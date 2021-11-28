@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class Function {
     public enum Operator {
-        ADD("+"), SUBTRACT("-"), MULTIPLY("*"), SIN("s"), COS("c"), CONSTANT("C");
+        ADD("+"), MULTIPLY("*"), SIN("s"), COS("c"), CONSTANT("C"); // for subtract just add negative numbers
 
         String symbol;
         Operator(String s) {
@@ -37,6 +37,23 @@ public class Function {
         this.value = value;
     }
 
+    public double calculateValue(double t) {
+        switch (op) {
+            case CONSTANT:
+                return value;
+            case SIN:
+                return Math.sin(t);
+            case COS:
+                return Math.cos(t);
+            case ADD:
+                return Arrays.stream(functions).mapToDouble(f -> f.calculateValue(t)).reduce(0, Double::sum);
+            case MULTIPLY:
+                return Arrays.stream(functions).mapToDouble(f -> f.calculateValue(t)).reduce(1, (a, b) -> a * b);
+            default:
+                throw new IllegalStateException("The operator " + op.toString() + " is not implemented yet");
+        }
+    }
+
     @Override
     public String toString() {
         switch (op) {
@@ -48,7 +65,6 @@ public class Function {
                 return "cos(t)";
             case ADD:
             case MULTIPLY:
-            case SUBTRACT:
                 return "(" + Arrays.stream(functions).map(Function::toString).collect(Collectors.joining(String.format(" %s ", op.symbol))) + ")";
             default:
                 throw new IllegalStateException("The operator " + op.toString() + " is not implemented yet");

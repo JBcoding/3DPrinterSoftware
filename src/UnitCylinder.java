@@ -1,17 +1,14 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public class UnitCylinder {
+public class UnitCylinder implements BaseObject {
     // A cylinder with height 1, standing on the xy plane with center bottom at (0,0,0) and radius 1
 
 
-    public List<PlaneIntersection> getPlaneIntersection(Plane p) {
+    public Optional<List<PlaneIntersection>> getPlaneIntersection(Plane p) {
         if (Utils.isZero(p.getNormalVector().getZ())) {
             // The plane is vertical
             if (p.planeDistance >= 1) {
-                return null; // No intersection
+                return Optional.empty(); // No intersection
             } else {
                 // Intersection can be made with 4 straight lines
                 double planeNormalAngle = Math.atan2(p.getNormalVector().getY(), p.getNormalVector().getX());
@@ -30,20 +27,27 @@ public class UnitCylinder {
                 Segment sideSegment1 = new Segment(p1, p2);
                 Segment sideSegment2 = new Segment(p3, p4);
 
-                return Arrays.asList(topSegment, bottomSegment, sideSegment1, sideSegment2);
+                return Optional.of(Arrays.asList(topSegment, bottomSegment, sideSegment1, sideSegment2));
             }
         }
 
         Vector3D up = new Vector3D(0, 0, 1);
         Vector3D steepestAscent = p.projectVectorOntoPlane(up);
         double xyPlaneLength = Math.sqrt(Math.pow(steepestAscent.getX(), 2) + Math.pow(steepestAscent.getY(), 2));
-        Vector3D steepestAscentUnit = steepestAscent.scale(1d / xyPlaneLength);
-        double highestHeight = p.getRayIntersectionPoint(new Ray(new Point3D(steepestAscentUnit.getX(), steepestAscentUnit.getY(), 0), up)).getZ();
-        double lowestHeight = p.getRayIntersectionPoint(new Ray(new Point3D(-steepestAscentUnit.getX(), -steepestAscentUnit.getY(), 0), up)).getZ();
+        double highestHeight, lowestHeight;
+        if (Utils.isZero(xyPlaneLength)) {
+            // Plane is horizontal
+            highestHeight = lowestHeight = p.planeDistance;
+        } else {
+            // Plan is sloping
+            Vector3D steepestAscentUnit = steepestAscent.scale(1d / xyPlaneLength);
+            highestHeight = p.getRayIntersectionPoint(new Ray(new Point3D(steepestAscentUnit.getX(), steepestAscentUnit.getY(), 0), up)).getZ();
+            lowestHeight = p.getRayIntersectionPoint(new Ray(new Point3D(-steepestAscentUnit.getX(), -steepestAscentUnit.getY(), 0), up)).getZ();
+        }
         double heightAtCenter = (highestHeight + lowestHeight) / 2d; // Since the center is in the middle of these to extremes
 
         if (highestHeight <= 0 || lowestHeight >= 1) {
-            return null; // the cylinder is above or below the plane
+            return Optional.empty(); // the cylinder is above or below the plane
         }
 
         double heightPerUnitXAxis = p.getRayIntersectionPoint(new Ray(new Point3D(1, 0, 0), up)).getZ() - p.getRayIntersectionPoint(new Ray(new Point3D(0, 0, 0), up)).getZ();
@@ -71,21 +75,21 @@ public class UnitCylinder {
             Curve curve2 = new Curve(xt, yt, zt, bottomCutEndAngle, topCutEndAngle);
             Segment topSegment = new Segment(new Point3D(Math.cos(topCutStartAngle), Math.sin(topCutStartAngle), 1), new Point3D(Math.cos(topCutEndAngle), Math.sin(topCutEndAngle), 1));
             Segment bottomSegment = new Segment(new Point3D(Math.cos(bottomCutStartAngle), Math.sin(bottomCutStartAngle), 0), new Point3D(Math.cos(bottomCutEndAngle), Math.sin(bottomCutEndAngle), 0));
-            return Arrays.asList(curve1, curve2, topSegment, bottomSegment);
+            return Optional.of(Arrays.asList(curve1, curve2, topSegment, bottomSegment));
         } else if (highestHeight > 1) {
             // we cut only the top of the cylinder
             Curve curve = new Curve(xt, yt, zt, topCutStartAngle, topCutEndAngle);
             Segment topSegment = new Segment(new Point3D(Math.cos(topCutStartAngle), Math.sin(topCutStartAngle), 1), new Point3D(Math.cos(topCutEndAngle), Math.sin(topCutEndAngle), 1));
-            return Arrays.asList(curve, topSegment);
+            return Optional.of(Arrays.asList(curve, topSegment));
         } else if (lowestHeight < 0) {
             // we cut only the bottom of the cylinder
             Curve curve = new Curve(xt, yt, zt, bottomCutEndAngle, bottomCutStartAngle + Math.PI * 2);
             Segment bottomSegment = new Segment(new Point3D(Math.cos(bottomCutStartAngle), Math.sin(bottomCutStartAngle), 0), new Point3D(Math.cos(bottomCutEndAngle), Math.sin(bottomCutEndAngle), 0));
-            return Arrays.asList(curve, bottomSegment);
+            return Optional.of(Arrays.asList(curve, bottomSegment));
         } else {
             // we cut neither the bottom or top of the cylinder
             Curve curve = new Curve(xt, yt, zt, 0, Math.PI * 2);
-            return Collections.singletonList(curve);
+            return Optional.of(Collections.singletonList(curve));
         }
     }
 }

@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.List;
 
 public class Segment implements PlaneIntersection {
@@ -39,5 +40,15 @@ public class Segment implements PlaneIntersection {
     @Override
     public String getGeoGebraString() {
         return String.format("Segment((%s, %s, %s), (%s, %s, %s))", p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    }
+
+    @Override
+    public List<Point3D> getPoints(int maxPoints) {
+        return Arrays.asList(p1, p2);
+    }
+
+    @Override
+    public PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m) {
+        return new Segment(m.multiply(p1), m.multiply(p2));
     }
 }

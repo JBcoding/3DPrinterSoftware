@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Curve implements PlaneIntersection {
     Function xt, yt, zt;
     double t0, t1;
@@ -24,5 +27,24 @@ public class Curve implements PlaneIntersection {
     @Override
     public String getGeoGebraString() {
         return String.format("Curve(%s, %s, %s, t, %s, %s)", xt, yt, zt, t0, t1);
+    }
+
+    @Override
+    public List<Point3D> getPoints(int maxPoints) {
+        double tDelta = (t1 - t0) / (maxPoints - 1);
+        List<Point3D> points = new ArrayList<>();
+        for (int i = 0; i < maxPoints; i++) {
+            double t = t0 + tDelta * i;
+            points.add(new Point3D(xt.calculateValue(t), yt.calculateValue(t), zt.calculateValue(t)));
+        }
+        return points;
+    }
+
+    @Override
+    public PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m) {
+        Function newXt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[0][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[0][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[0][2]), m.matrix[0][3]);
+        Function newYt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[1][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[1][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[1][2]), m.matrix[1][3]);
+        Function newZt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[2][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[2][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[2][2]), m.matrix[2][3]);
+        return new Curve(newXt, newYt, newZt, t0, t1);
     }
 }

@@ -1,11 +1,15 @@
-public class UnitSphere {
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+public class UnitSphere implements BaseObject {
     // center 0,0,0 and radius 1, just use transform to make it into any ellipsoid
 
 
-    public Curve getPlaneIntersection(Plane p) {
+    public Optional<List<PlaneIntersection>> getPlaneIntersection(Plane p) {
         double distance = p.distanceToPoint(new Point3D(0, 0, 0));
         if (Math.abs(distance) >= 1) { // no intersection or point intersection
-            return null;
+            return Optional.empty();
         }
 
         double radiusOfIntersectionCircle = Math.abs(Math.sin(Math.PI/2 - Math.asin(Math.abs(distance))));
@@ -37,6 +41,6 @@ public class UnitSphere {
         Function yt = new Function(Function.Operator.ADD, f, new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.COS), -a * x * y + b * x * x + b * z * z - c * y * z), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.SIN), a * z - c * x), a * x * y - b * x * x - b * z * z + b + c * y * z);
         Function zt = new Function(Function.Operator.ADD, g, new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.COS), -a * x * z - b * y * z + c * x * x + c * y * y), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.SIN), b * x - a * y), a * x * z + b * y * z - c * x * x - c * y * y + c);
 
-        return new Curve(xt, yt, zt, 0, Math.PI * 2);
+        return Optional.of(Collections.singletonList(new Curve(xt, yt, zt, 0, Math.PI * 2)));
     }
 }
