@@ -73,7 +73,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         Matrix4x4 m = Matrix4x4.getMovementMatrix(new Vector3D(0, 1.2, 0))
                 .multiply(Matrix4x4.getMovementMatrix(new Vector3D(0, 0, 1)))
                 .multiply(Matrix4x4.getRotationMatrixAroundXAxis(Math.PI / 2.5))
-                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(2));
+                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(5));
         b1.setDeformationMatrix(m);
 
         MultiPartObject b2 = new DeformedBaseObject(new UnitSphere());
@@ -84,7 +84,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
                 .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(1.2))
         );
 
-        MultiPartObject b = new IntersectionObject(b1, b2);
+        MultiPartObject b = new SubtractionObject(b2, b1);
 
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
