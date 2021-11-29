@@ -41,10 +41,32 @@ public class Curve implements PlaneIntersection {
     }
 
     @Override
+    public List<Point3D> getDeltaPoints(double delta) {
+        double tDelta = 0.01;
+        Point3D p1 = new Point3D(xt.calculateValue(t0), yt.calculateValue(t0), zt.calculateValue(t0));
+        Point3D p2 = new Point3D(xt.calculateValue(t0 + tDelta), yt.calculateValue(t0 + tDelta), zt.calculateValue(t0 + tDelta));
+        double p1p2Distance = p1.subtract(p2).distance0();
+        double estimatedDistancePerUnitT = p1p2Distance / tDelta;
+        double estimatedTotalDistance = estimatedDistancePerUnitT * (t1 - t0);
+        return getPoints((int) (estimatedTotalDistance / delta + 1));
+    }
+
+    @Override
     public PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m) {
         Function newXt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[0][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[0][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[0][2]), m.matrix[0][3]);
         Function newYt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[1][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[1][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[1][2]), m.matrix[1][3]);
         Function newZt = new Function(Function.Operator.ADD, new Function(Function.Operator.MULTIPLY, this.xt, m.matrix[2][0]), new Function(Function.Operator.MULTIPLY, this.yt, m.matrix[2][1]), new Function(Function.Operator.MULTIPLY, this.zt, m.matrix[2][2]), m.matrix[2][3]);
         return new Curve(newXt, newYt, newZt, t0, t1);
+    }
+
+    @Override
+    public Point3D getFirstPoint() {
+        return new Point3D(xt.calculateValue(t0), yt.calculateValue(t0), zt.calculateValue(t0));
+    }
+
+    @Override
+    public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
+        double tDelta = t1 - t0;
+        return new Curve(xt, yt, zt, t0 + tDelta * startPercentage, t0 + tDelta * endPercentage);
     }
 }

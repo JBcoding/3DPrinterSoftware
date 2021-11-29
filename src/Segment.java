@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,7 +49,30 @@ public class Segment implements PlaneIntersection {
     }
 
     @Override
+    public List<Point3D> getDeltaPoints(double delta) {
+        List<Point3D> points = new ArrayList<>();
+        Point3D p2p1 = p2.subtract(p1);
+        double totalDistance = p2p1.distance0();
+        int numSegments = (int) (totalDistance / delta + 1);
+        for (int i = 0; i < numSegments; i++) {
+            points.add(p1.add(p2p1.scale(i / (double)numSegments)));
+        }
+        return points;
+    }
+
+    @Override
     public PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m) {
         return new Segment(m.multiply(p1), m.multiply(p2));
+    }
+
+    @Override
+    public Point3D getFirstPoint() {
+        return p1;
+    }
+
+    @Override
+    public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
+        Point3D p2p1 = p2.subtract(p1);
+        return new Segment(p1.add(p2p1.scale(startPercentage)), p1.add(p2p1.scale(endPercentage)));
     }
 }

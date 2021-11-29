@@ -65,7 +65,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 5;
+        int linesPerUnit = 20;
         int startingHeight = -3;
         int endingHeight = 5;
 
@@ -123,8 +123,8 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         frame_count += 1;
 
         xAngle = (frame_count / 2.0) % 360;
-        yAngle = 0;
-        position = new Vector3D(Math.cos(xAngle / 180 * Math.PI + Math.PI / 2) * 7, 1, Math.sin(xAngle / 180 * Math.PI + Math.PI / 2) * 7);
+        yAngle = 22.5;
+        position = new Vector3D(Math.cos(xAngle / 180 * Math.PI + Math.PI / 2) * 7, 3, Math.sin(xAngle / 180 * Math.PI + Math.PI / 2) * 7);
 
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);

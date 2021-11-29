@@ -43,4 +43,9 @@ public class UnitSphere implements BaseObject {
 
         return Optional.of(Collections.singletonList(new Curve(xt, yt, zt, 0, Math.PI * 2)));
     }
+
+    @Override
+    public boolean isPointContained(Point3D p) {
+        return p.distance0() < 1.0 - Utils.eps;
+    }
 }

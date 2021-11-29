@@ -15,7 +15,12 @@ public class DeformedBaseObject extends MultiPartObject {
     }
 
     @Override
-    public Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p) {
+    protected Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p) {
         return baseObject.getPlaneIntersection(p);
+    }
+
+    @Override
+    protected boolean isPointContainedInternal(Point3D p) {
+        return baseObject.isPointContained(p);
     }
 }
