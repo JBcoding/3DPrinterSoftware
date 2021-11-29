@@ -23,4 +23,9 @@ public class DeformedBaseObject extends MultiPartObject {
     protected boolean isPointContainedInternal(Point3D p) {
         return baseObject.isPointContained(p);
     }
+
+    @Override
+    protected boolean isPointContainedOrOnSurfaceInternal(Point3D p) {
+        return baseObject.isPointContainedOrOnSurface(p);
+    }
 }

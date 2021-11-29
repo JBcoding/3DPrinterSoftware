@@ -84,7 +84,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
                 .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(1.2))
         );
 
-        MultiPartObject b = new UnionObject(b1, b2);
+        MultiPartObject b = new IntersectionObject(b1, b2);
 
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {

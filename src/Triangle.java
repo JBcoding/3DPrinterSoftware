@@ -36,6 +36,11 @@ public class Triangle implements BaseObject {
     }
 
     @Override
+    public boolean isPointContainedOrOnSurface(Point3D p) {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "Triangle{" +
                 "p1=" + p1 +

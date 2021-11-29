@@ -99,4 +99,11 @@ public class UnitCylinder implements BaseObject {
                 && p.getZ() < 1.0 - Utils.eps
                 && Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2)) < 1.0 - Utils.eps;
     }
+
+    @Override
+    public boolean isPointContainedOrOnSurface(Point3D p) {
+        return p.getZ() > -Utils.eps
+                && p.getZ() < 1.0 + Utils.eps
+                && Math.sqrt(Math.pow(p.getX(), 2) + Math.pow(p.getY(), 2)) < 1.0 + Utils.eps;
+    }
 }

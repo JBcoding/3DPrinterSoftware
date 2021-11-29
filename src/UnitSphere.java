@@ -48,4 +48,9 @@ public class UnitSphere implements BaseObject {
     public boolean isPointContained(Point3D p) {
         return p.distance0() < 1.0 - Utils.eps;
     }
+
+    @Override
+    public boolean isPointContainedOrOnSurface(Point3D p) {
+        return p.distance0() < 1.0 + Utils.eps;
+    }
 }

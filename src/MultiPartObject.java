@@ -25,6 +25,14 @@ public abstract class MultiPartObject {
         return isPointContainedInternal(deformedPoint);
     }
 
+    protected abstract boolean isPointContainedOrOnSurfaceInternal(Point3D p);
+
+    public boolean isPointContainedOrOnSurface(Point3D p) {
+        Matrix4x4 inverseDeformationMatrix = deformationMatrix.inverse();
+        Point3D deformedPoint = inverseDeformationMatrix.multiply(p);
+        return isPointContainedOrOnSurfaceInternal(deformedPoint);
+    }
+
     public Matrix4x4 getDeformationMatrix() {
         return deformationMatrix;
     }
