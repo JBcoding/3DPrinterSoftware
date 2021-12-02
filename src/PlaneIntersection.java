@@ -11,5 +11,9 @@ public interface PlaneIntersection {
 
     Point3D getFirstPoint();
 
+    Point3D getLastPoint();
+
     PlaneIntersection getSubIntersection(double startPercentage, double endPercentage);
+
+    PlaneIntersection offsetXYPlane(double offset);
 }

@@ -65,15 +65,15 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 20;
+        int linesPerUnit = 5;
         int startingHeight = -3;
         int endingHeight = 5;
 
         MultiPartObject b1 = new DeformedBaseObject(new UnitCylinder());
-        Matrix4x4 m = Matrix4x4.getMovementMatrix(new Vector3D(0, 1.2, 0))
+        Matrix4x4 m = Matrix4x4.getMovementMatrix(new Vector3D(0, 1.9, 0))
                 .multiply(Matrix4x4.getMovementMatrix(new Vector3D(0, 0, 1)))
                 .multiply(Matrix4x4.getRotationMatrixAroundXAxis(Math.PI / 2.5))
-                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(5));
+                .multiply(Matrix4x4.getStretchingMatrixInTheZAxis(.9));
         b1.setDeformationMatrix(m);
 
         MultiPartObject b2 = new DeformedBaseObject(new UnitSphere());
@@ -89,7 +89,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
-            Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
+            Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersectionWithOffset(p, .1);
             for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
                 List<Point3D> points = pi.getPoints(100);
                 double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();

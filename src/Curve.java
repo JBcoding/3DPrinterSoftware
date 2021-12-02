@@ -65,8 +65,25 @@ public class Curve implements PlaneIntersection {
     }
 
     @Override
+    public Point3D getLastPoint() {
+        return new Point3D(xt.calculateValue(t1), yt.calculateValue(t1), zt.calculateValue(t1));
+    }
+
+    @Override
     public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
         double tDelta = t1 - t0;
         return new Curve(xt, yt, zt, t0 + tDelta * startPercentage, t0 + tDelta * endPercentage);
+    }
+
+    @Override
+    public PlaneIntersection offsetXYPlane(double offset) {
+        Function xdt = xt.differentiate();
+        Function ydt = yt.differentiate();
+        Function xdt2 = new Function(Function.Operator.MULTIPLY, xdt, xdt);
+        Function ydt2 = new Function(Function.Operator.MULTIPLY, ydt, ydt);
+        Function sqrt_xdt2_ydt2 = new Function(Function.Operator.SQRT, new Function(Function.Operator.ADD, xdt2, ydt2));
+        Function offsetXt = new Function(Function.Operator.ADD, xt, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, ydt), sqrt_xdt2_ydt2));
+        Function offsetYt = new Function(Function.Operator.ADD, yt, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, xdt), sqrt_xdt2_ydt2)));
+        return new Curve(offsetXt, offsetYt, zt, t0, t1);
     }
 }
