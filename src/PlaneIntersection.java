@@ -1,19 +1,27 @@
 import java.util.List;
 
-public interface PlaneIntersection {
-    String getGeoGebraString();
+public abstract class PlaneIntersection {
+    abstract String getGeoGebraString();
 
-    List<Point3D> getPoints(int maxPoints);
+    abstract List<Point3D> getPoints(int maxPoints);
 
-    List<Point3D> getDeltaPoints(double delta);
+    abstract List<Point3D> getDeltaPoints(double delta);
 
-    PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m);
+    abstract PlaneIntersection multiplyWithMatrix4x4(Matrix4x4 m);
 
-    Point3D getFirstPoint();
+    abstract Point3D getFirstPoint();
 
-    Point3D getLastPoint();
+    abstract Point3D getLastPoint();
 
-    PlaneIntersection getSubIntersection(double startPercentage, double endPercentage);
+    abstract PlaneIntersection getSubIntersection(double startPercentage, double endPercentage);
 
-    PlaneIntersection offsetXYPlane(double offset);
+    abstract PlaneIntersection offsetXYPlane(double offset);
+
+    double getShortestDistance(Point3D point, double deltaPrecision) {
+        double shortestDistance = Double.MAX_VALUE;
+        for (Point3D p : getDeltaPoints(deltaPrecision)) {
+            shortestDistance = Math.min(shortestDistance, p.subtract(point).distance0());
+        }
+        return shortestDistance;
+    }
 }

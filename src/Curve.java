@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Curve implements PlaneIntersection {
+public class Curve extends PlaneIntersection {
     Function xt, yt, zt;
     double t0, t1;
 

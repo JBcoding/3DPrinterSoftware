@@ -67,6 +67,49 @@ public abstract class MultiPartObject {
             expandedPlaneIntersections.add(offset0);
             expandedPlaneIntersections.add(offset1);
         }
-        return Optional.of(expandedPlaneIntersections);
+
+        double deltaPrecision = 0.02;
+        long t = System.nanoTime();
+        List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
+        List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
+        for (PlaneIntersection epi : expandedPlaneIntersections) {
+            boolean currentlyAtDistance = getShortestDistanceBetweenPointsAndPoint(planeIntersectionPoints, epi.getFirstPoint(), deltaPrecision) > offset - deltaPrecision;
+            List<Point3D> points = epi.getDeltaPoints(deltaPrecision);
+            int startPointIndex = 0;
+            for (int i = 0; i < points.size(); i++) {
+                boolean atDistance = getShortestDistanceBetweenPointsAndPoint(planeIntersectionPoints, points.get(i), deltaPrecision) > offset - deltaPrecision;
+                if (atDistance && !currentlyAtDistance) {
+                    // start here
+                    startPointIndex = i;
+                } else if (!atDistance && currentlyAtDistance) {
+                    // end here
+                    finalPlaneIntersections.add(epi.getSubIntersection(
+                            startPointIndex / (double) points.size(),
+                            i / (double) points.size()
+                    ));
+                }
+                currentlyAtDistance = atDistance;
+            }
+            if (currentlyAtDistance) {
+                // end here
+                finalPlaneIntersections.add(epi.getSubIntersection(
+                        startPointIndex / (double) points.size(),
+                        1
+                ));
+            }
+        }
+        System.out.println((System.nanoTime() - t) / 1e9 + " s");
+        return Optional.of(finalPlaneIntersections);
+    }
+
+    private double getShortestDistanceBetweenPointsAndPoint(List<List<Point3D>> points, Point3D point, double deltaPrecision) {
+        double shortestDistance = Double.MAX_VALUE;
+        for (List<Point3D> listOfPoints : points) {
+            for (int i = 0; i < listOfPoints.size(); i++) {
+                double distance = listOfPoints.get(i).subtract(point).distance0();
+                shortestDistance = Math.min(shortestDistance, distance);
+            }
+        }
+        return shortestDistance;
     }
 }

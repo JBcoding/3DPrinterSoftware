@@ -65,7 +65,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 5;
+        int linesPerUnit = 1;
         int startingHeight = -3;
         int endingHeight = 5;
 

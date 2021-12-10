@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Segment implements PlaneIntersection {
+public class Segment extends PlaneIntersection {
     protected Point3D p1, p2;
 
     public Segment(Point3D p1, Point3D p2) {
