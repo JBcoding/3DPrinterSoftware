@@ -2,12 +2,14 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
+import javafx.scene.input.KeyCode;
 import javafx.util.Pair;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
@@ -29,6 +31,10 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     private double xAngle = 315;
     private double yAngle = 22.5;
 
+    boolean goingUp, goingDown, goingRight, goingLeft, goingForward, goingBackwards;
+    boolean draggingMouse;
+    double lastMouseCoordX, lastMouseCoordY;
+
     private List<Pair<Vector3D, Vector3D>> objectLines = new ArrayList<>();
 
     private Vector3D position = new Vector3D(5, 3, 5);
@@ -36,7 +42,12 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public DisplayWindow() {
         super();
 
-        updateObjectLines();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                updateObjectLines();
+            }
+        }).start();
 
         JFrame frame = new JFrame("Demo");
 
@@ -55,6 +66,93 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         glcanvas.addGLEventListener(this);
         glcanvas.setPreferredSize(new Dimension(1200, 900));
 
+        glcanvas.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == 81) {
+                    goingUp = true;
+                } else if (e.getKeyCode() == 69) {
+                    goingDown = true;
+                } else if (e.getKeyCode() == 87) {
+                    goingForward = true;
+                } else if (e.getKeyCode() == 83) {
+                    goingBackwards = true;
+                } else if (e.getKeyCode() == 65) {
+                    goingLeft = true;
+                } else if (e.getKeyCode() == 68) {
+                    goingRight = true;
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == 81) {
+                    goingUp = false;
+                } else if (e.getKeyCode() == 69) {
+                    goingDown = false;
+                } else if (e.getKeyCode() == 87) {
+                    goingForward = false;
+                } else if (e.getKeyCode() == 83) {
+                    goingBackwards = false;
+                } else if (e.getKeyCode() == 65) {
+                    goingLeft = false;
+                } else if (e.getKeyCode() == 68) {
+                    goingRight = false;
+                }
+            }
+        });
+
+        glcanvas.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                draggingMouse = true;
+                lastMouseCoordX = e.getX();
+                lastMouseCoordY = e.getY();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                draggingMouse = false;
+                // update
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+
+        glcanvas.addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                double draggedPixelToAngleRatio = 0.05;
+                xAngle += (lastMouseCoordX - e.getX()) * draggedPixelToAngleRatio;
+                yAngle += (lastMouseCoordY - e.getY()) * draggedPixelToAngleRatio;
+                lastMouseCoordX = e.getX();
+                lastMouseCoordY = e.getY();
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+
+            }
+        });
+
         frame.add(glcanvas);
 
         frame.setSize(1200, 900);
@@ -65,7 +163,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 1;
+        int linesPerUnit = 10;
         int startingHeight = -3;
         int endingHeight = 5;
 
@@ -90,6 +188,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
             Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersectionWithOffset(p, .1);
+            //Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
             for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
                 List<Point3D> points = pi.getPoints(100);
                 double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
@@ -122,9 +221,25 @@ public class DisplayWindow extends JPanel implements GLEventListener {
 
         frame_count += 1;
 
-        xAngle = (frame_count / 2.0) % 360;
-        yAngle = 22.5;
-        position = new Vector3D(Math.cos(xAngle / 180 * Math.PI + Math.PI / 2) * 7, 3, Math.sin(xAngle / 180 * Math.PI + Math.PI / 2) * 7);
+        double movementSpeed = 0.05;
+        if (goingUp) {
+            position = new Vector3D(position.getX(), position.getY() + movementSpeed, position.getZ());
+        }
+        if (goingDown) {
+            position = new Vector3D(position.getX(), position.getY() - movementSpeed, position.getZ());
+        }
+        if (goingForward) {
+            position = new Vector3D(position.getX() + Math.sin(xAngle / 180 * Math.PI) * movementSpeed, position.getY(), position.getZ() - Math.cos(xAngle / 180 * Math.PI) * movementSpeed);
+        }
+        if (goingBackwards) {
+            position = new Vector3D(position.getX() - Math.sin(xAngle / 180 * Math.PI) * movementSpeed, position.getY(), position.getZ() + Math.cos(xAngle / 180 * Math.PI) * movementSpeed);
+        }
+        if (goingLeft) {
+            position = new Vector3D(position.getX() - Math.cos(xAngle / 180 * Math.PI) * movementSpeed, position.getY(), position.getZ() - Math.sin(xAngle / 180 * Math.PI) * movementSpeed);
+        }
+        if (goingRight) {
+            position = new Vector3D(position.getX() + Math.cos(xAngle / 180 * Math.PI) * movementSpeed, position.getY(), position.getZ() + Math.sin(xAngle / 180 * Math.PI) * movementSpeed);
+        }
 
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
@@ -163,11 +278,13 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         gl.glColor3d(0.8, 0.8, 0.8);
         gl.glLineWidth(2);
 
-        for (Pair<Vector3D, Vector3D> line : objectLines) {
+        for (int i = 0; i < objectLines.size(); i++) {
+            Pair<Vector3D, Vector3D> line = objectLines.get(i);
             gl.glBegin(GL2.GL_LINES);
             gl.glVertex3d(line.getKey().getX(), line.getKey().getY(), line.getKey().getZ());
             gl.glVertex3d(line.getValue().getX(), line.getValue().getY(), line.getValue().getZ());
             gl.glEnd();
+
         }
 
         gl.glColor3d(0.4, 0.4, 0.4);
@@ -226,7 +343,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
             this.width = canvas.getWidth();
             this.height = canvas.getHeight();
         }
-        glu.gluPerspective(fovY, aspect, 1f, RENDER_DISTANCE); // fovy, aspect, zNear, zFar
+        glu.gluPerspective(fovY, aspect, .1f, RENDER_DISTANCE); // fovy, aspect, zNear, zFar
 
         // Enable the model-view transform
         gl.glMatrixMode(GL2.GL_MODELVIEW);

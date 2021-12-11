@@ -68,7 +68,7 @@ public abstract class MultiPartObject {
             expandedPlaneIntersections.add(offset1);
         }
 
-        double deltaPrecision = 0.02;
+        double deltaPrecision = 0.01;
         long t = System.nanoTime();
         List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
