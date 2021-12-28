@@ -68,7 +68,7 @@ public abstract class MultiPartObject {
             expandedPlaneIntersections.add(offset1);
         }
 
-        double deltaPrecision = 0.01;
+        double deltaPrecision = offset / 4;
         long t = System.nanoTime();
         List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
@@ -112,4 +112,39 @@ public abstract class MultiPartObject {
         }
         return shortestDistance;
     }
+
+    public interface PointContainedCheck {
+        boolean check(Point3D p);
+    }
+
+    protected List<PlaneIntersection> combinePlaneIntersections(List<PlaneIntersection> planeIntersections, PointContainedCheck containedCheck) {
+        double deltaPrecision = 0.001;
+        List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
+        for (PlaneIntersection pi : planeIntersections) {
+            boolean currentlyIn = containedCheck.check(pi.getFirstPoint());
+            List<Point3D> points = pi.getDeltaPoints(deltaPrecision);
+            int startPointIndex = 0;
+            for (int i = 0; i < points.size(); i ++) {
+                Point3D p = points.get(i);
+                boolean isPointContained = containedCheck.check(p);
+                if (currentlyIn && !isPointContained) {
+                    finalPlaneIntersections.add(pi.getSubIntersection(
+                            startPointIndex / (double) points.size(),
+                            i / (double) points.size()
+                    ));
+                } else if (!currentlyIn && isPointContained) {
+                    startPointIndex = i;
+                }
+                currentlyIn = isPointContained;
+            }
+            if (currentlyIn && startPointIndex != points.size() - 1) {
+                finalPlaneIntersections.add(pi.getSubIntersection(
+                        startPointIndex / (double) points.size(),
+                        1
+                ));
+            }
+        }
+        return finalPlaneIntersections;
+    }
+
 }

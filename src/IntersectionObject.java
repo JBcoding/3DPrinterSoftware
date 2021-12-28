@@ -35,32 +35,7 @@ public class IntersectionObject extends MultiPartObject {
     }
 
     public List<PlaneIntersection> intersectionPlaneIntersections(List<PlaneIntersection> planeIntersections) {
-        double deltaPrecision = 0.01;
-        List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
-        for (PlaneIntersection pi : planeIntersections) {
-            boolean currentlyIn = isPointContainedOrOnSurfaceInternal(pi.getFirstPoint());
-            List<Point3D> points = pi.getDeltaPoints(deltaPrecision);
-            int startPointIndex = 0;
-            for (int i = 0; i < points.size(); i ++) {
-                Point3D p = points.get(i);
-                boolean isPointContained = isPointContainedOrOnSurfaceInternal(p);
-                if (currentlyIn && !isPointContained) {
-                    finalPlaneIntersections.add(pi.getSubIntersection(
-                            startPointIndex / (double) points.size(),
-                            i / (double) points.size()
-                    ));
-                } else if (!currentlyIn && isPointContained) {
-                    startPointIndex = i;
-                }
-                currentlyIn = isPointContained;
-            }
-            if (currentlyIn && startPointIndex != points.size() - 1) {
-                finalPlaneIntersections.add(pi.getSubIntersection(
-                        startPointIndex / (double) points.size(),
-                        1
-                ));
-            }
-        }
-        return finalPlaneIntersections;
+        return combinePlaneIntersections(planeIntersections, this::isPointContainedOrOnSurfaceInternal);
+
     }
 }

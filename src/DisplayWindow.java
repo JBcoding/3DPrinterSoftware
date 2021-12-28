@@ -187,8 +187,10 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
-            Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersectionWithOffset(p, .1);
-            //Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
+            Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
+            if (intersection.isPresent() && false) {
+                intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .1).get());
+            }
             for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
                 List<Point3D> points = pi.getPoints(100);
                 double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
