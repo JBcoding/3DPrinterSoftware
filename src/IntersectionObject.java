@@ -11,16 +11,16 @@ public class IntersectionObject extends MultiPartObject {
     }
 
     @Override
-    protected Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p) {
-        Optional<List<PlaneIntersection>> planeIntersections1 = object1.getPlaneIntersection(p);
-        Optional<List<PlaneIntersection>> planeIntersections2 = object2.getPlaneIntersection(p);
+    protected Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionInternal(Plane p) {
+        Optional<List<PlaneIntersectionCycle>> planeIntersections1 = object1.getPlaneIntersection(p);
+        Optional<List<PlaneIntersectionCycle>> planeIntersections2 = object2.getPlaneIntersection(p);
         if (!planeIntersections1.isPresent() || !planeIntersections2.isPresent()) {
             return Optional.empty();
         }
-        List<PlaneIntersection> allPlaneIntersections = new ArrayList<>();
-        allPlaneIntersections.addAll(planeIntersections1.get());
-        allPlaneIntersections.addAll(planeIntersections2.get());
-        return Optional.of(intersectionPlaneIntersections(allPlaneIntersections));
+        List<PlaneIntersectionCycle> allPlaneIntersectionCycles = new ArrayList<>();
+        allPlaneIntersectionCycles.addAll(planeIntersections1.get());
+        allPlaneIntersectionCycles.addAll(planeIntersections2.get());
+        return Optional.of(intersectionPlaneIntersections(allPlaneIntersectionCycles));
 
     }
 
@@ -34,8 +34,8 @@ public class IntersectionObject extends MultiPartObject {
         return object1.isPointContainedOrOnSurface(p) && object2.isPointContainedOrOnSurface(p);
     }
 
-    public List<PlaneIntersection> intersectionPlaneIntersections(List<PlaneIntersection> planeIntersections) {
-        return combinePlaneIntersections(planeIntersections, this::isPointContainedOrOnSurfaceInternal);
+    public List<PlaneIntersectionCycle> intersectionPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles) {
+        return combinePlaneIntersections(planeIntersectionCycles, this::isPointContainedOrOnSurfaceInternal);
 
     }
 }

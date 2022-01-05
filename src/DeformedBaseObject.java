@@ -15,8 +15,8 @@ public class DeformedBaseObject extends MultiPartObject {
     }
 
     @Override
-    protected Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p) {
-        return baseObject.getPlaneIntersection(p);
+    protected Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionInternal(Plane p) {
+        return PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(baseObject.getPlaneIntersection(p));
     }
 
     @Override

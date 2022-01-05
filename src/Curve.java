@@ -42,13 +42,17 @@ public class Curve extends PlaneIntersection {
 
     @Override
     public List<Point3D> getDeltaPoints(double delta) {
-        double tDelta = 0.01;
+        double tDelta = 0.01; // TODO(mbjorn) maybe make configurable
         Point3D p1 = new Point3D(xt.calculateValue(t0), yt.calculateValue(t0), zt.calculateValue(t0));
         Point3D p2 = new Point3D(xt.calculateValue(t0 + tDelta), yt.calculateValue(t0 + tDelta), zt.calculateValue(t0 + tDelta));
         double p1p2Distance = p1.subtract(p2).distance0();
         double estimatedDistancePerUnitT = p1p2Distance / tDelta;
         double estimatedTotalDistance = estimatedDistancePerUnitT * (t1 - t0);
-        return getPoints((int) (estimatedTotalDistance / delta + 1));
+        int estimatedNumberOfPoints = (int) (estimatedTotalDistance / delta);
+        if (estimatedNumberOfPoints < 0) {
+            estimatedNumberOfPoints *= -1;
+        }
+        return getPoints(estimatedNumberOfPoints + 1);
     }
 
     @Override
@@ -91,5 +95,10 @@ public class Curve extends PlaneIntersection {
         Function offsetXt = new Function(Function.Operator.ADD, xt, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, ydt), sqrt_xdt2_ydt2));
         Function offsetYt = new Function(Function.Operator.ADD, yt, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, xdt), sqrt_xdt2_ydt2)));
         return new Curve(offsetXt, offsetYt, zt, t0, t1);
+    }
+
+    @Override
+    public PlaneIntersection reverse() {
+        return new Curve(xt, yt, zt, t1, t0);
     }
 }

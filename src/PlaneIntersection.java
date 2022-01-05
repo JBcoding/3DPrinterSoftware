@@ -26,4 +26,6 @@ public abstract class PlaneIntersection {
         }
         return shortestDistance;
     }
+
+    public abstract PlaneIntersection reverse();
 }

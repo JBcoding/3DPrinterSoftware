@@ -115,6 +115,10 @@ public class Matrix4x4 {
         return pi.multiplyWithMatrix4x4(this);
     }
 
+    public PlaneIntersectionCycle multiply(PlaneIntersectionCycle pic) {
+        return pic.multiplyWithMatrix4x4(this);
+    }
+
     public Plane multiply(Plane p) {
         // https://stackoverflow.com/a/7706849
         Vector3D n = p.getNormalVector();

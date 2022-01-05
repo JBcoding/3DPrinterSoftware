@@ -93,4 +93,9 @@ public class Segment extends PlaneIntersection {
         p1p2Rotated = p1p2Rotated.normalise().scale(offset);
         return new Segment(p1.add(p1p2Rotated.toPoint3D()), p2.add(p1p2Rotated.toPoint3D()));
     }
+
+    @Override
+    public PlaneIntersection reverse() {
+        return new Segment(p2, p1);
+    }
 }

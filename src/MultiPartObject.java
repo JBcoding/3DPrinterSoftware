@@ -1,17 +1,15 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class MultiPartObject {
     protected Matrix4x4 deformationMatrix = Matrix4x4.IDENTITY();
 
-    protected abstract Optional<List<PlaneIntersection>> getPlaneIntersectionInternal(Plane p);
+    protected abstract Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionInternal(Plane p);
 
-    public Optional<List<PlaneIntersection>> getPlaneIntersection(Plane p) {
+    public Optional<List<PlaneIntersectionCycle>> getPlaneIntersection(Plane p) {
         Matrix4x4 inverseDeformationMatrix = deformationMatrix.inverse();
         Plane deformedPlane = inverseDeformationMatrix.multiply(p);
-        Optional<List<PlaneIntersection>> planeIntersections = getPlaneIntersectionInternal(deformedPlane);
+        Optional<List<PlaneIntersectionCycle>> planeIntersections = getPlaneIntersectionInternal(deformedPlane);
         if (!planeIntersections.isPresent()) {
             return Optional.empty();
         }
@@ -42,8 +40,11 @@ public abstract class MultiPartObject {
         this.deformationMatrix = deformationMatrix;
     }
 
-    public Optional<List<PlaneIntersection>> getPlaneIntersectionWithOffset(Plane p, double offset) {
-        Optional<List<PlaneIntersection>> planeIntersections = getPlaneIntersection(p);
+    public Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionWithOffset(Plane p, double offset) {
+        // TODO(mbjorn) move to better place, since this can only be done in the outer most layer, since we need to be flat in the xy plane
+        return Optional.empty();
+
+        /*Optional<List<PlaneIntersection>> planeIntersections = getPlaneIntersection(p);
         if (!planeIntersections.isPresent()) {
             return Optional.empty();
         }
@@ -67,9 +68,11 @@ public abstract class MultiPartObject {
             expandedPlaneIntersections.add(offset0);
             expandedPlaneIntersections.add(offset1);
         }
+        if (true) {
+            return Optional.of(expandedPlaneIntersections);
+        }
 
         double deltaPrecision = offset / 4;
-        long t = System.nanoTime();
         List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
         for (PlaneIntersection epi : expandedPlaneIntersections) {
@@ -98,8 +101,7 @@ public abstract class MultiPartObject {
                 ));
             }
         }
-        System.out.println((System.nanoTime() - t) / 1e9 + " s");
-        return Optional.of(finalPlaneIntersections);
+        return Optional.of(finalPlaneIntersections);*/
     }
 
     private double getShortestDistanceBetweenPointsAndPoint(List<List<Point3D>> points, Point3D point, double deltaPrecision) {
@@ -125,7 +127,6 @@ public abstract class MultiPartObject {
         double delta = t2 - t1;
         double tMid = t1 + delta / 2;
         Point3D midPoint = pi.getPoint(tMid);
-        System.out.println(pi.hashCode() + " " + t1 + " " + t2 + " " + containedCheck.check(midPoint) + " " + pi.getPoint((t1 + t2) / 2));
         if (containedCheck.check(midPoint)) {
             return exactExitPoint(pi, containedCheck, tMid, t2);
         } else {
@@ -133,9 +134,10 @@ public abstract class MultiPartObject {
         }
     }
 
-    protected List<PlaneIntersection> combinePlaneIntersections(List<PlaneIntersection> planeIntersections, PointContainedCheck containedCheck) {
+    protected List<PlaneIntersectionCycle> combinePlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, PointContainedCheck containedCheck) {
         double deltaPrecision = 0.001; // TODO(mbjorn) put into utils
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
+        List<PlaneIntersection> planeIntersections = planeIntersectionCycles.stream().flatMap(cycle -> cycle.getPlaneIntersections().stream()).collect(Collectors.toList());
         for (PlaneIntersection pi : planeIntersections) {
             boolean currentlyIn = containedCheck.check(pi.getFirstPoint());
             List<Point3D> points = pi.getDeltaPoints(deltaPrecision);
@@ -149,11 +151,9 @@ public abstract class MultiPartObject {
                             startPointIndex / (double) (points.size() - 1),
                             i / (double) (points.size() - 1)
                     ));
-                    System.out.println("a");
                     inOutPoints.add(exactExitPoint(pi, containedCheck, (i - 2) / (double) (points.size() - 1), (i + 1) / (double) (points.size() - 1)));
                 } else if (!currentlyIn && isPointContained) {
                     startPointIndex = i;
-                    System.out.println("b");
                     inOutPoints.add(exactExitPoint(pi, containedCheck, (i + 1) / (double) (points.size() - 1), (i - 2) / (double) (points.size() - 1)));
                 }
                 currentlyIn = isPointContained;
@@ -164,10 +164,9 @@ public abstract class MultiPartObject {
                         1
                 ));
             }
-            System.out.println(inOutPoints);
         }
-        System.out.println();
-        return finalPlaneIntersections;
+
+        return PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(finalPlaneIntersections);
     }
 
 }

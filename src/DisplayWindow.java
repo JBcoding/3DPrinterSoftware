@@ -187,17 +187,20 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
-            Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
-            if (intersection.isPresent()) {
+            Optional<List<PlaneIntersectionCycle>> intersection = b.getPlaneIntersection(p);
+            if (intersection.isPresent() && false) {
                 intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .1).get());
+                intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .2).get());
             }
-            for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
-                List<Point3D> points = pi.getPoints(100);
-                double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
-                double[] yPoints = points.stream().mapToDouble(Point3D::getY).toArray();
-                double[] zPoints = points.stream().mapToDouble(Point3D::getZ).toArray();
-                for (int j = 0; j < points.size() - 1; j++) {
-                    objectLines.add(new Pair<>(new Vector3D(xPoints[j], zPoints[j], yPoints[j]), new Vector3D(xPoints[j + 1], zPoints[j + 1], yPoints[j + 1])));
+            for (PlaneIntersectionCycle pic : intersection.orElse(new ArrayList<>())) {
+                for (PlaneIntersection pi : pic.getPlaneIntersections()) {
+                    List<Point3D> points = pi.getPoints(100);
+                    double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
+                    double[] yPoints = points.stream().mapToDouble(Point3D::getY).toArray();
+                    double[] zPoints = points.stream().mapToDouble(Point3D::getZ).toArray();
+                    for (int j = 0; j < points.size() - 1; j++) {
+                        objectLines.add(new Pair<>(new Vector3D(xPoints[j], zPoints[j], yPoints[j]), new Vector3D(xPoints[j + 1], zPoints[j + 1], yPoints[j + 1])));
+                    }
                 }
             }
         }
