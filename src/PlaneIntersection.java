@@ -13,6 +13,8 @@ public abstract class PlaneIntersection {
 
     abstract Point3D getLastPoint();
 
+    abstract Point3D getPoint(double percentage);
+
     abstract PlaneIntersection getSubIntersection(double startPercentage, double endPercentage);
 
     abstract PlaneIntersection offsetXYPlane(double offset);

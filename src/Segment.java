@@ -76,9 +76,14 @@ public class Segment extends PlaneIntersection {
     }
 
     @Override
-    public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
+    Point3D getPoint(double percentage) {
         Point3D p2p1 = p2.subtract(p1);
-        return new Segment(p1.add(p2p1.scale(startPercentage)), p1.add(p2p1.scale(endPercentage)));
+        return p1.add(p2p1.scale(percentage));
+    }
+
+    @Override
+    public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
+        return new Segment(getPoint(startPercentage), getPoint(endPercentage));
     }
 
     @Override

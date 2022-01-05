@@ -117,33 +117,56 @@ public abstract class MultiPartObject {
         boolean check(Point3D p);
     }
 
+    // expects t1 to be contained and t2 to not be contained
+    protected Point3D exactExitPoint(PlaneIntersection pi, PointContainedCheck containedCheck, double t1, double t2) {
+        if (Math.abs(t2 - t1) < Utils.eps) {
+            return pi.getPoint((t1 + t2) / 2);
+        }
+        double delta = t2 - t1;
+        double tMid = t1 + delta / 2;
+        Point3D midPoint = pi.getPoint(tMid);
+        System.out.println(pi.hashCode() + " " + t1 + " " + t2 + " " + containedCheck.check(midPoint) + " " + pi.getPoint((t1 + t2) / 2));
+        if (containedCheck.check(midPoint)) {
+            return exactExitPoint(pi, containedCheck, tMid, t2);
+        } else {
+            return exactExitPoint(pi, containedCheck, t1, tMid);
+        }
+    }
+
     protected List<PlaneIntersection> combinePlaneIntersections(List<PlaneIntersection> planeIntersections, PointContainedCheck containedCheck) {
-        double deltaPrecision = 0.001;
+        double deltaPrecision = 0.001; // TODO(mbjorn) put into utils
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
         for (PlaneIntersection pi : planeIntersections) {
             boolean currentlyIn = containedCheck.check(pi.getFirstPoint());
             List<Point3D> points = pi.getDeltaPoints(deltaPrecision);
             int startPointIndex = 0;
+            List<Point3D> inOutPoints = new ArrayList<>();
             for (int i = 0; i < points.size(); i ++) {
                 Point3D p = points.get(i);
                 boolean isPointContained = containedCheck.check(p);
                 if (currentlyIn && !isPointContained) {
                     finalPlaneIntersections.add(pi.getSubIntersection(
-                            startPointIndex / (double) points.size(),
-                            i / (double) points.size()
+                            startPointIndex / (double) (points.size() - 1),
+                            i / (double) (points.size() - 1)
                     ));
+                    System.out.println("a");
+                    inOutPoints.add(exactExitPoint(pi, containedCheck, (i - 2) / (double) (points.size() - 1), (i + 1) / (double) (points.size() - 1)));
                 } else if (!currentlyIn && isPointContained) {
                     startPointIndex = i;
+                    System.out.println("b");
+                    inOutPoints.add(exactExitPoint(pi, containedCheck, (i + 1) / (double) (points.size() - 1), (i - 2) / (double) (points.size() - 1)));
                 }
                 currentlyIn = isPointContained;
             }
             if (currentlyIn && startPointIndex != points.size() - 1) {
                 finalPlaneIntersections.add(pi.getSubIntersection(
-                        startPointIndex / (double) points.size(),
+                        startPointIndex / (double) (points.size() - 1),
                         1
                 ));
             }
+            System.out.println(inOutPoints);
         }
+        System.out.println();
         return finalPlaneIntersections;
     }
 

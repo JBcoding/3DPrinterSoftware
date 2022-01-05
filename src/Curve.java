@@ -70,6 +70,12 @@ public class Curve extends PlaneIntersection {
     }
 
     @Override
+    Point3D getPoint(double percentage) {
+        double t = t0 + (t1 - t0) * percentage;
+        return new Point3D(xt.calculateValue(t), yt.calculateValue(t), zt.calculateValue(t));
+    }
+
+    @Override
     public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
         double tDelta = t1 - t0;
         return new Curve(xt, yt, zt, t0 + tDelta * startPercentage, t0 + tDelta * endPercentage);

@@ -163,7 +163,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 10;
+        int linesPerUnit = 1;
         int startingHeight = -3;
         int endingHeight = 5;
 
@@ -188,7 +188,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
             Optional<List<PlaneIntersection>> intersection = b.getPlaneIntersection(p);
-            if (intersection.isPresent() && false) {
+            if (intersection.isPresent()) {
                 intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .1).get());
             }
             for (PlaneIntersection pi : intersection.orElse(new ArrayList<>())) {
