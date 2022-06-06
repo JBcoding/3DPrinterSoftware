@@ -22,7 +22,7 @@ public class UnionObject extends MultiPartObject {
         List<PlaneIntersectionCycle> allPlaneIntersections = new ArrayList<>();
         allPlaneIntersections.addAll(planeIntersections1.get());
         allPlaneIntersections.addAll(planeIntersections2.get());
-        return Optional.of(unionPlaneIntersections(allPlaneIntersections));
+        return Optional.of(unionPlaneIntersections(allPlaneIntersections, p));
     }
 
     @Override
@@ -35,7 +35,7 @@ public class UnionObject extends MultiPartObject {
         return object1.isPointContainedOrOnSurface(p) || object2.isPointContainedOrOnSurface(p);
     }
 
-    public List<PlaneIntersectionCycle> unionPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles) {
-        return combinePlaneIntersections(planeIntersectionCycles, p -> !isPointContainedInternal(p));
+    public List<PlaneIntersectionCycle> unionPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, Plane plane) {
+        return combinePlaneIntersections(planeIntersectionCycles, p -> !isPointContainedInternal(p), plane);
     }
 }

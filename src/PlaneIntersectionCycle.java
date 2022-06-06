@@ -75,4 +75,12 @@ public class PlaneIntersectionCycle {
     public static Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionCyclesFromPlaneIntersections(Optional<List<PlaneIntersection>> planeIntersections) {
         return planeIntersections.map(PlaneIntersectionCycle::getPlaneIntersectionCyclesFromPlaneIntersections);
     }
+
+    public PlaneIntersectionCycle reverse() {
+        List<PlaneIntersection> newCycle = new ArrayList<>();
+        for (PlaneIntersection pi : getPlaneIntersections()) {
+            newCycle.add(pi.reverse());
+        }
+        return new PlaneIntersectionCycle(newCycle);
+    }
 }

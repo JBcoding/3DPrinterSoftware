@@ -40,16 +40,15 @@ public abstract class MultiPartObject {
         this.deformationMatrix = deformationMatrix;
     }
 
-    public Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionWithOffset(Plane p, double offset) {
+    public Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionWithOffset(PlaneIntersectionCycle pic, double offset) {
         // TODO(mbjorn) move to better place, since this can only be done in the outer most layer, since we need to be flat in the xy plane
-        return Optional.empty();
+        //return Optional.empty();
 
-        /*Optional<List<PlaneIntersection>> planeIntersections = getPlaneIntersection(p);
-        if (!planeIntersections.isPresent()) {
-            return Optional.empty();
-        }
         List<PlaneIntersection> expandedPlaneIntersections = new ArrayList<>();
-        for (PlaneIntersection pi : planeIntersections.get()) {
+        List<PlaneIntersectionCycle> expandedPlaneIntersectionCycles = new ArrayList<>();
+        List<PlaneIntersection> expandedIntersections = new ArrayList<>();
+
+        for (PlaneIntersection pi : pic.getPlaneIntersections()) {
             expandedPlaneIntersections.add(pi);
 
             Function xt1 = new Function(Function.Operator.ADD, pi.getFirstPoint().getX(), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.SIN), new Function(Function.Operator.CONSTANT, offset)));
@@ -67,12 +66,16 @@ public abstract class MultiPartObject {
 
             expandedPlaneIntersections.add(offset0);
             expandedPlaneIntersections.add(offset1);
-        }
-        if (true) {
-            return Optional.of(expandedPlaneIntersections);
+
+            expandedIntersections.add(offset0);
         }
 
-        double deltaPrecision = offset / 4;
+        expandedPlaneIntersectionCycles.addAll(PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(expandedIntersections));
+        return Optional.of(expandedPlaneIntersectionCycles);
+
+
+        // OLD DEDUB CODE BELOW
+       /* double deltaPrecision = offset / 4;
         List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
         for (PlaneIntersection epi : expandedPlaneIntersections) {
@@ -134,7 +137,7 @@ public abstract class MultiPartObject {
         }
     }
 
-    protected List<PlaneIntersectionCycle> combinePlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, PointContainedCheck containedCheck) {
+    protected List<PlaneIntersectionCycle> combinePlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, PointContainedCheck containedCheck, Plane plane) {
         double deltaPrecision = 0.001; // TODO(mbjorn) put into utils
         List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
         List<PlaneIntersection> planeIntersections = planeIntersectionCycles.stream().flatMap(cycle -> cycle.getPlaneIntersections().stream()).collect(Collectors.toList());
@@ -166,7 +169,30 @@ public abstract class MultiPartObject {
             }
         }
 
-        return PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(finalPlaneIntersections);
+        List<PlaneIntersectionCycle> combinedPlaneIntersectionCycles = PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(finalPlaneIntersections);
+        List<PlaneIntersectionCycle> rotatedPlaneIntersectionCycles = new ArrayList<>();
+        for (PlaneIntersectionCycle cycle : combinedPlaneIntersectionCycles) {
+            int inCount = 0;
+            for (PlaneIntersection pi: cycle.getPlaneIntersections()) {
+                Point3D point = pi.getPoint(.5);
+                Vector3D direction = pi.getDirection(.5);
+                Matrix4x4 rotationMatrix = Matrix4x4.getRotationMatrixAroundVector(plane.getNormalVector(), Math.PI / 2);
+                Vector3D sideDirection = rotationMatrix.multiply(direction);
+                sideDirection = sideDirection.normalise().scale(Utils.eps * 5);
+                if (containedCheck.check(point.add(sideDirection.toPoint3D()))) {
+                    inCount ++;
+                } else {
+                    inCount --;
+                }
+            }
+            System.out.println(inCount + " " + cycle.getPlaneIntersections().size());
+            if (inCount < 0) {
+                rotatedPlaneIntersectionCycles.add(cycle.reverse());
+            } else {
+                rotatedPlaneIntersectionCycles.add(cycle);
+            }
+        }
+        return rotatedPlaneIntersectionCycles;
     }
 
 }

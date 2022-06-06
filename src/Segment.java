@@ -82,6 +82,11 @@ public class Segment extends PlaneIntersection {
     }
 
     @Override
+    public Vector3D getDirection(double percentage) {
+        return new Vector3D(p2.subtract(p1));
+    }
+
+    @Override
     public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
         return new Segment(getPoint(startPercentage), getPoint(endPercentage));
     }

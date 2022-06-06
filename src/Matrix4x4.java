@@ -79,6 +79,31 @@ public class Matrix4x4 {
         });
     }
 
+    public static Matrix4x4 getRotationMatrixAroundVector(Vector3D axis, double angle) {
+        double l = axis.getX(), m = axis.getY(), n = axis.getZ();
+        double cosAngle = Math.cos(angle);
+        double sinAngle = Math.sin(angle);
+
+        double a = l * l * (1 - cosAngle) + cosAngle;
+        double b = m * l * (1 - cosAngle) - n * sinAngle;
+        double c = n * l * (1 - cosAngle) + m * sinAngle;
+
+        double d = l * m * (1 - cosAngle) + n * sinAngle;
+        double e = m * m * (1 - cosAngle) + cosAngle;
+        double f = n * m * (1 - cosAngle) - l * sinAngle;
+
+        double g = l * n * (1 - cosAngle) - m * sinAngle;
+        double h = m * n * (1 - cosAngle) + l * sinAngle;
+        double i = n * n * (1 - cosAngle) + cosAngle;
+
+        return new Matrix4x4(new double[][]{
+            {a, b, c, 0},
+            {d, e, f, 0},
+            {g, h, i, 0},
+            {0, 0, 0, 1}
+        });
+    }
+
     public Matrix4x4 multiply(Matrix4x4 matrix4x4) {
         double newMatrix[][] = new double[4][4];
         for (int x = 0; x < 4; x++) {

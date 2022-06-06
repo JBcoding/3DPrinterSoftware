@@ -20,7 +20,7 @@ public class IntersectionObject extends MultiPartObject {
         List<PlaneIntersectionCycle> allPlaneIntersectionCycles = new ArrayList<>();
         allPlaneIntersectionCycles.addAll(planeIntersections1.get());
         allPlaneIntersectionCycles.addAll(planeIntersections2.get());
-        return Optional.of(intersectionPlaneIntersections(allPlaneIntersectionCycles));
+        return Optional.of(intersectionPlaneIntersections(allPlaneIntersectionCycles, p));
 
     }
 
@@ -34,8 +34,8 @@ public class IntersectionObject extends MultiPartObject {
         return object1.isPointContainedOrOnSurface(p) && object2.isPointContainedOrOnSurface(p);
     }
 
-    public List<PlaneIntersectionCycle> intersectionPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles) {
-        return combinePlaneIntersections(planeIntersectionCycles, this::isPointContainedOrOnSurfaceInternal);
+    public List<PlaneIntersectionCycle> intersectionPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, Plane plane) {
+        return combinePlaneIntersections(planeIntersectionCycles, this::isPointContainedOrOnSurfaceInternal, plane);
 
     }
 }

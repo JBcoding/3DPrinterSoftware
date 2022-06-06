@@ -22,7 +22,7 @@ public class SubtractionObject extends MultiPartObject {
         List<PlaneIntersectionCycle> allPlaneIntersectionCycles = new ArrayList<>();
         allPlaneIntersectionCycles.addAll(planeIntersections1.get());
         allPlaneIntersectionCycles.addAll(planeIntersections2.get());
-        return Optional.of(subtractPlaneIntersections(allPlaneIntersectionCycles));
+        return Optional.of(subtractPlaneIntersections(allPlaneIntersectionCycles, p));
 
     }
 
@@ -36,7 +36,7 @@ public class SubtractionObject extends MultiPartObject {
         return object1.isPointContainedOrOnSurface(p) && !object2.isPointContained(p);
     }
 
-    public List<PlaneIntersectionCycle> subtractPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles) {
-        return combinePlaneIntersections(planeIntersectionCycles, this::isPointContainedOrOnSurfaceInternal);
+    public List<PlaneIntersectionCycle> subtractPlaneIntersections(List<PlaneIntersectionCycle> planeIntersectionCycles, Plane plane) {
+        return combinePlaneIntersections(planeIntersectionCycles, this::isPointContainedOrOnSurfaceInternal, plane);
     }
 }

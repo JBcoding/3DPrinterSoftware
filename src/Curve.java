@@ -80,6 +80,19 @@ public class Curve extends PlaneIntersection {
     }
 
     @Override
+    public Vector3D getDirection(double percentage) {
+        double t = t0 + (t1 - t0) * percentage;
+        Function xdt = xt.differentiate();
+        Function ydt = yt.differentiate();
+        Function zdt = zt.differentiate();
+        Vector3D direction = new Vector3D(xdt.calculateValue(t), ydt.calculateValue(t), zdt.calculateValue(t));
+        if (t0 > t1) {
+            direction = direction.scale(-1);
+        }
+        return direction;
+    }
+
+    @Override
     public PlaneIntersection getSubIntersection(double startPercentage, double endPercentage) {
         double tDelta = t1 - t0;
         return new Curve(xt, yt, zt, t0 + tDelta * startPercentage, t0 + tDelta * endPercentage);
@@ -94,6 +107,10 @@ public class Curve extends PlaneIntersection {
         Function sqrt_xdt2_ydt2 = new Function(Function.Operator.SQRT, new Function(Function.Operator.ADD, xdt2, ydt2));
         Function offsetXt = new Function(Function.Operator.ADD, xt, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, ydt), sqrt_xdt2_ydt2));
         Function offsetYt = new Function(Function.Operator.ADD, yt, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, xdt), sqrt_xdt2_ydt2)));
+        if (t0 > t1) {
+            offsetXt = new Function(Function.Operator.ADD, xt, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, ydt), sqrt_xdt2_ydt2)));
+            offsetYt = new Function(Function.Operator.ADD, yt, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.MULTIPLY, -1, new Function(Function.Operator.DIVIDE, new Function(Function.Operator.MULTIPLY, offset, xdt), sqrt_xdt2_ydt2))));
+        }
         return new Curve(offsetXt, offsetYt, zt, t0, t1);
     }
 

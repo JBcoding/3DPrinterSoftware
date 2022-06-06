@@ -163,7 +163,7 @@ public class DisplayWindow extends JPanel implements GLEventListener {
     public void updateObjectLines() {
         objectLines = new ArrayList<>();
 
-        int linesPerUnit = 1;
+        int linesPerUnit = 2;
         int startingHeight = -3;
         int endingHeight = 5;
 
@@ -187,12 +187,18 @@ public class DisplayWindow extends JPanel implements GLEventListener {
         Vector3D planeNormal = new Vector3D(0, 0, 1);
         for (int i = startingHeight * linesPerUnit; i < endingHeight * linesPerUnit; i++) {
             Plane p = new Plane(planeNormal, (double) i / linesPerUnit);
+
             Optional<List<PlaneIntersectionCycle>> intersection = b.getPlaneIntersection(p);
-            if (intersection.isPresent() && false) {
-                intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .1).get());
-                intersection.get().addAll(b.getPlaneIntersectionWithOffset(p, .2).get());
+            List<PlaneIntersectionCycle> intersectionToDraw = new ArrayList<>();
+            if (intersection.isPresent()) {
+                for (PlaneIntersectionCycle pic : intersection.get()) {
+                    intersectionToDraw.add(pic);
+                    intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, -.1).get());
+                    //intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, .2).get());
+                    //intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, .3).get());
+                }
             }
-            for (PlaneIntersectionCycle pic : intersection.orElse(new ArrayList<>())) {
+            for (PlaneIntersectionCycle pic : intersectionToDraw) {
                 for (PlaneIntersection pi : pic.getPlaneIntersections()) {
                     List<Point3D> points = pi.getPoints(100);
                     double[] xPoints = points.stream().mapToDouble(Point3D::getX).toArray();
