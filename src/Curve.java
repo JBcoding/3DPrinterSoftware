@@ -30,6 +30,11 @@ public class Curve extends PlaneIntersection {
     }
 
     @Override
+    PythonFunctionData getPythonFunctionData(String variableName) {
+        return new PythonFunctionData(xt.toPython(variableName), yt.toPython(variableName), variableName, t0, t1);
+    }
+
+    @Override
     public List<Point3D> getPoints(int maxPoints) {
         double tDelta = (t1 - t0) / (maxPoints - 1);
         List<Point3D> points = new ArrayList<>();

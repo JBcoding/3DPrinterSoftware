@@ -42,35 +42,44 @@ public abstract class MultiPartObject {
 
     public Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionWithOffset(PlaneIntersectionCycle pic, double offset) {
         // TODO(mbjorn) move to better place, since this can only be done in the outer most layer, since we need to be flat in the xy plane
-        //return Optional.empty();
 
-        List<PlaneIntersection> expandedPlaneIntersections = new ArrayList<>();
-        List<PlaneIntersectionCycle> expandedPlaneIntersectionCycles = new ArrayList<>();
+        List<PlaneIntersection> expandedCorners = new ArrayList<>();
         List<PlaneIntersection> expandedIntersections = new ArrayList<>();
-
         for (PlaneIntersection pi : pic.getPlaneIntersections()) {
-            expandedPlaneIntersections.add(pi);
 
             Function xt1 = new Function(Function.Operator.ADD, pi.getFirstPoint().getX(), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.SIN), new Function(Function.Operator.CONSTANT, offset)));
             Function yt1 = new Function(Function.Operator.ADD, pi.getFirstPoint().getY(), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.COS), new Function(Function.Operator.CONSTANT, offset)));
             Function zt1 = new Function(Function.Operator.ADD, pi.getFirstPoint().getZ(), new Function(Function.Operator.CONSTANT, 0));
-            expandedPlaneIntersections.add(new Curve(xt1, yt1, zt1, 0, Math.PI * 2));
+            PlaneIntersection cycle = new Curve(xt1, yt1, zt1, 0, Math.PI * 2);
+            expandedCorners.add(cycle);
 
-            Function xt2 = new Function(Function.Operator.ADD, pi.getLastPoint().getX(), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.SIN), new Function(Function.Operator.CONSTANT, offset)));
-            Function yt2 = new Function(Function.Operator.ADD, pi.getLastPoint().getY(), new Function(Function.Operator.MULTIPLY, new Function(Function.Operator.COS), new Function(Function.Operator.CONSTANT, offset)));
-            Function zt2 = new Function(Function.Operator.ADD, pi.getLastPoint().getZ(), new Function(Function.Operator.CONSTANT, 0));
-            expandedPlaneIntersections.add(new Curve(xt2, yt2, zt2, 0, Math.PI * 2));
-
-            PlaneIntersection offset0 = pi.offsetXYPlane(offset);
-            PlaneIntersection offset1 = pi.offsetXYPlane(-offset);
-
-            expandedPlaneIntersections.add(offset0);
-            expandedPlaneIntersections.add(offset1);
-
-            expandedIntersections.add(offset0);
+            PlaneIntersection offsetPi = pi.offsetXYPlane(offset);
+            expandedIntersections.add(offsetPi);
         }
 
-        expandedPlaneIntersectionCycles.addAll(PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(expandedIntersections));
+        List<PlaneIntersection> extendedCutIntersections = new ArrayList<>();
+        for (int i = 0; i < expandedIntersections.size(); i ++) {
+            PlaneIntersection offsetPlaneIntersectionBefore = expandedIntersections.get(i);
+            PlaneIntersection offsetPlaneIntersectionAfter = expandedIntersections.get((i + 1) % expandedIntersections.size());
+            PlaneIntersection corner = expandedCorners.get(i);
+
+            PythonFunctionData f1 = corner.getPythonFunctionData("g");
+            PythonFunctionData f2 = offsetPlaneIntersectionBefore.getPythonFunctionData("f");
+            PythonFunctionData f3 = offsetPlaneIntersectionAfter.getPythonFunctionData("f");
+            double startCut = PythonFunctionData.solveFor(f2, f1)[3];
+            System.out.println(corner.getGeoGebraString());
+            System.out.println(offsetPlaneIntersectionAfter.getGeoGebraString());
+            System.out.println();
+            double endCut = PythonFunctionData.solveFor(f3, f1)[1];
+            if (startCut > endCut) {
+                endCut += 1;
+            }
+            System.out.println(startCut + " " + endCut);
+            extendedCutIntersections.add(corner.getSubIntersection(startCut, endCut));
+            extendedCutIntersections.add(offsetPlaneIntersectionAfter);
+        }
+
+        List<PlaneIntersectionCycle> expandedPlaneIntersectionCycles = PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(extendedCutIntersections);
         return Optional.of(expandedPlaneIntersectionCycles);
 
 
@@ -185,7 +194,6 @@ public abstract class MultiPartObject {
                     inCount --;
                 }
             }
-            System.out.println(inCount + " " + cycle.getPlaneIntersections().size());
             if (inCount < 0) {
                 rotatedPlaneIntersectionCycles.add(cycle.reverse());
             } else {

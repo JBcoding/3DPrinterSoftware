@@ -1,5 +1,3 @@
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -121,6 +119,25 @@ public class Function {
                 return "sqrt(" + functions[0].toString() + ")";
             default:
                 throw new IllegalStateException("The operator " + op.toString() + " is not implemented yet");
+        }
+    }
+
+    public String toPython(String variableName) {
+        switch (op) {
+            case CONSTANT:
+                return String.valueOf(value);
+            case SIN:
+                return String.format("math.sin(%s)", variableName);
+            case COS:
+                return String.format("math.cos(%s)", variableName);
+            case ADD:
+            case MULTIPLY:
+            case DIVIDE:
+                return "(" + Arrays.stream(functions).map(f -> f.toPython(variableName)).collect(Collectors.joining(String.format(" %s ", op.symbol))) + ")";
+            case SQRT:
+                return "math.sqrt(" + functions[0].toPython(variableName) + ")";
+            default:
+                throw new IllegalStateException("The operator " + op + " is not implemented yet");
         }
     }
 }

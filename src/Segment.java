@@ -44,6 +44,13 @@ public class Segment extends PlaneIntersection {
     }
 
     @Override
+    PythonFunctionData getPythonFunctionData(String variableName) {
+        String xt = String.format("%s + (%s - %s) * %s", p1.x, p2.x, p1.x, variableName);
+        String yt = String.format("%s + (%s - %s) * %s", p1.y, p2.y, p1.y, variableName);
+        return new PythonFunctionData(xt, yt, variableName, 0, 1);
+    }
+
+    @Override
     public List<Point3D> getPoints(int maxPoints) {
         return Arrays.asList(p1, p2);
     }

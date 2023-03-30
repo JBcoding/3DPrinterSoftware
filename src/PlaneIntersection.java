@@ -3,6 +3,8 @@ import java.util.List;
 public abstract class PlaneIntersection {
     abstract String getGeoGebraString();
 
+    abstract PythonFunctionData getPythonFunctionData(String variableName);
+
     abstract List<Point3D> getPoints(int maxPoints);
 
     abstract List<Point3D> getDeltaPoints(double delta);
