@@ -43,7 +43,7 @@ public class PythonFunctionData {
                         "    x0 = bounds[0][0] + (bounds[1][0] - bounds[0][0]) * (p / 100.0)\n" +
                         "    y0 = bounds[0][1] + (bounds[1][1] - bounds[0][1]) * (p / 100.0)\n" +
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
-                        "    if res.cost < 0.1:\n" +
+                        "    if res.cost < 0.001:\n" +
                         "        if res.x[0] < smallestValidX:\n" +
                         "            solutionWithSmallest = res.x\n" +
                         "            smallestValidX = res.x[0]\n" +

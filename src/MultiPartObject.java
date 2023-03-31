@@ -42,7 +42,6 @@ public abstract class MultiPartObject {
 
     public Optional<List<PlaneIntersectionCycle>> getPlaneIntersectionWithOffset(PlaneIntersectionCycle pic, double offset) {
         // TODO(mbjorn) move to better place, since this can only be done in the outer most layer, since we need to be flat in the xy plane
-
         List<PlaneIntersection> expandedCorners = new ArrayList<>();
         List<PlaneIntersection> expandedIntersections = new ArrayList<>();
         for (PlaneIntersection pi : pic.getPlaneIntersections()) {
@@ -61,21 +60,25 @@ public abstract class MultiPartObject {
         for (int i = 0; i < expandedIntersections.size(); i ++) {
             PlaneIntersection offsetPlaneIntersectionBefore = expandedIntersections.get(i);
             PlaneIntersection offsetPlaneIntersectionAfter = expandedIntersections.get((i + 1) % expandedIntersections.size());
-            PlaneIntersection corner = expandedCorners.get(i);
+            PlaneIntersection corner = expandedCorners.get((i + 1) % expandedCorners.size());
 
             PythonFunctionData f1 = corner.getPythonFunctionData("g");
             PythonFunctionData f2 = offsetPlaneIntersectionBefore.getPythonFunctionData("f");
             PythonFunctionData f3 = offsetPlaneIntersectionAfter.getPythonFunctionData("f");
             double startCut = PythonFunctionData.solveFor(f2, f1)[3];
-            System.out.println(corner.getGeoGebraString());
-            System.out.println(offsetPlaneIntersectionAfter.getGeoGebraString());
-            System.out.println();
             double endCut = PythonFunctionData.solveFor(f3, f1)[1];
-            if (startCut > endCut) {
-                endCut += 1;
+            if (offset > 0) {
+                if (startCut < endCut) {
+                    endCut -= 1;
+                }
+            } else {
+                if (startCut > endCut) {
+                    endCut += 1;
+                }
             }
-            System.out.println(startCut + " " + endCut);
-            extendedCutIntersections.add(corner.getSubIntersection(startCut, endCut));
+            if (!Utils.isRoughZero(Math.abs(startCut - endCut)) && !Utils.isRoughZero(Math.abs(startCut - endCut) - 1)) {
+                extendedCutIntersections.add(corner.getSubIntersection(startCut, endCut));
+            }
             extendedCutIntersections.add(offsetPlaneIntersectionAfter);
         }
 

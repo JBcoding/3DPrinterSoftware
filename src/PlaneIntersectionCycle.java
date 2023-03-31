@@ -27,34 +27,27 @@ public class PlaneIntersectionCycle {
             allPlaneIntersections.remove(currentPlaneIntersection);
             currentCycle.add(currentPlaneIntersection);
             do {
-
                 // Effectively final for lambda below
                 Point3D finalPointToMatch = pointToMatch;
-                PlaneIntersection finalCurrentPlaneIntersection = currentPlaneIntersection;
 
-                PlaneIntersection closestPlaneIntersection = Stream.concat(
-                        allPlaneIntersections.stream(),
-                        currentCycle.stream()
-                )
+                if (allPlaneIntersections.isEmpty()) {
+                    break;
+                }
+                PlaneIntersection closestPlaneIntersection = allPlaneIntersections.stream()
                         .min(
                                 Comparator.comparingDouble(
-                                        pi -> {
-                                            if (pi == finalCurrentPlaneIntersection) { // Yes object point comparison
-                                                // max because the closest point is the point we want to match
-                                                return Math.max(
-                                                        pi.getFirstPoint().subtract(finalPointToMatch).distance0(),
-                                                        pi.getLastPoint().subtract(finalPointToMatch).distance0()
-                                                );
-                                            }
-                                            return Math.min(
-                                                    pi.getFirstPoint().subtract(finalPointToMatch).distance0(),
-                                                    pi.getLastPoint().subtract(finalPointToMatch).distance0()
-                                            );
-                                        }
+                                        pi -> Math.min(
+                                                pi.getFirstPoint().subtract(finalPointToMatch).distance0(),
+                                                pi.getLastPoint().subtract(finalPointToMatch).distance0()
+                                        )
                                 )
                         ).get();
 
-                if (currentCycle.contains(closestPlaneIntersection)) {
+                double distanceToClosestSegment = Math.min(
+                        closestPlaneIntersection.getFirstPoint().subtract(finalPointToMatch).distance0(),
+                        closestPlaneIntersection.getLastPoint().subtract(finalPointToMatch).distance0()
+                );
+                if (!Utils.isRoughZero(distanceToClosestSegment)) {
                     break;
                 }
                 double closestPlaneIntersectionFirstPoint = closestPlaneIntersection.getFirstPoint().subtract(pointToMatch).distance0();
@@ -81,6 +74,7 @@ public class PlaneIntersectionCycle {
         for (PlaneIntersection pi : getPlaneIntersections()) {
             newCycle.add(pi.reverse());
         }
+        Collections.reverse(newCycle);
         return new PlaneIntersectionCycle(newCycle);
     }
 }
