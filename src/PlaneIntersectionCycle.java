@@ -9,6 +9,42 @@ public class PlaneIntersectionCycle {
         this.cycle = cycle;
     }
 
+    public static List<Point3D> findSelfIntersectionPoints(List<PlaneIntersectionCycle> planeCycles) {
+        List<Point3D> allPoints = new ArrayList<>();
+        List<PlaneIntersection> planeIntersections = planeCycles.stream().flatMap(cycle -> cycle.cycle.stream()).collect(Collectors.toList());
+        for (PlaneIntersection pi1 : planeIntersections) {
+            for (PlaneIntersection pi2 : planeIntersections) {
+                // TODO (mbjorn): Figure out how to compare intersections with itself, it can have self intersections (maybe bounds that never overlaps)
+                if (pi1 != pi2) { // Yes object level comparison
+                    PythonFunctionData f1 = pi1.getPythonFunctionData("g");
+                    PythonFunctionData f2 = pi2.getPythonFunctionData("f");
+                    double[] data = PythonFunctionData.findAllIntersections(f1, f2);
+                    List<Point3D> points = new ArrayList<>();
+                    for (int i = 0; i < data.length; i+=2) {
+                        if ((data[i] < 0.05 || data[i] > 0.95) && (data[i + 1] < 0.05 || data[i + 1] > 0.95)) {
+                            // TODO(mbjorn) check if these have endpoints meeting from the cycle
+                            // For now we just assume they do
+                        } else {
+                            Point3D p1 = pi1.getPoint(data[i]);
+                            Point3D p2 = pi2.getPoint(data[i + 1]);
+
+                            //if (Utils.isRoughZero(p1.subtract(p2).distance0())) {
+                                points.add(pi1.getPoint(data[i]));
+                                points.add(pi2.getPoint(data[i + 1]));
+                                System.out.println(pi1.getPoint(data[i]));
+                                System.out.println(pi2.getPoint(data[i + 1]));
+                                System.out.println(p1.subtract(p2).distance0());
+                                System.out.println("");
+                            //}
+                        }
+                    }
+                    allPoints.addAll(points);
+                }
+            }
+        }
+        return allPoints;
+    }
+
     public List<PlaneIntersection> getPlaneIntersections() {
         return cycle;
     }

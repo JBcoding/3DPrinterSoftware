@@ -23,6 +23,7 @@ public class PythonFunctionData {
         this.upperBound = max(lowerBound, upperBound);
     }
 
+    // TODO(mbjorn): Name things in this class better.....
     public static String getPythonScript(PythonFunctionData f1, PythonFunctionData f2) {
         return String.format("from scipy.optimize import least_squares\n" +
                         "import math\n" +
@@ -43,14 +44,40 @@ public class PythonFunctionData {
                         "    x0 = bounds[0][0] + (bounds[1][0] - bounds[0][0]) * (p / 100.0)\n" +
                         "    y0 = bounds[0][1] + (bounds[1][1] - bounds[0][1]) * (p / 100.0)\n" +
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
-                        "    if res.cost < 0.001:\n" +
+                        "    if res.cost < 0.0001:\n" +
                         "        if res.x[0] < smallestValidX:\n" +
                         "            solutionWithSmallest = res.x\n" +
                         "            smallestValidX = res.x[0]\n" +
                         "        if res.x[0] > largestValidX:\n" +
                         "            solutionWithLargest = res.x\n" +
                         "            largestValidX = res.x[0]\n" +
-                "## MOB-EOF"
+                        "## MOB-EOF"
+                , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
+    }
+
+    public static String getPythonScriptForAllIntersections(PythonFunctionData f1, PythonFunctionData f2) {
+        return String.format("from scipy.optimize import least_squares\n" +
+                        "import math\n" +
+                        "\n" +
+                        "def equations(p):\n" +
+                        "    %s, %s = p\n" +
+                        "    return (%s - %s, %s - %s)\n" +
+                        "\n" +
+                        "bounds = ((%s, %s), (%s, %s))\n" +
+                        "\n" +
+                        "valid_solutions = []\n" +
+                        "\n" +
+                        "for p in range(1, 100):\n" +
+                        "    x0 = bounds[0][0] + (bounds[1][0] - bounds[0][0]) * (p / 100.0)\n" +
+                        "    y0 = bounds[0][1] + (bounds[1][1] - bounds[0][1]) * (p / 100.0)\n" +
+                        "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
+                        "    if res.cost < 0.000001:\n" +
+                        "        valid_solutions.append(res.x)\n" +
+                        "    y0 = bounds[1][1] + (bounds[0][1] - bounds[1][1]) * (p / 100.0)\n" +
+                        "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
+                        "    if res.cost < 0.000001:\n" +
+                        "        valid_solutions.append(res.x)\n" +
+                        "## MOB-EOF"
                 , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
     }
 
@@ -74,6 +101,32 @@ public class PythonFunctionData {
             data[1] = (data[1] - against.lowerBound) / (against.upperBound - against.lowerBound);
             data[2] = (data[2] - solveFor.lowerBound) / (solveFor.upperBound - solveFor.lowerBound);
             data[3] = (data[3] - against.lowerBound) / (against.upperBound - against.lowerBound);
+            return data;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // TODO(mbjorn) Fix so we return proper formatted data in a subclass or something
+    public static double[] findAllIntersections(PythonFunctionData f1, PythonFunctionData f2) {
+        String script = getPythonScriptForAllIntersections(f1, f2);
+        try {
+            Socket socket = new Socket("localhost", 54321);
+            OutputStream output = socket.getOutputStream();
+            output.write(script.getBytes(StandardCharsets.UTF_8));
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String result = input.lines().collect(Collectors.joining("\n")).trim();
+
+            if (result.length() == 0) {
+                return new double[0];
+            }
+
+            double[] data = Arrays.stream(result.trim().split("\n")).mapToDouble(Double::parseDouble).toArray();
+            for (int i = 0; i < data.length; i += 2) {
+                data[i] = (data[i] - f1.lowerBound) / (f1.upperBound - f1.lowerBound);
+                data[i + 1] = (data[i + 1] - f2.lowerBound) / (f2.upperBound - f2.lowerBound);
+            }
             return data;
         } catch (IOException e) {
             throw new RuntimeException(e);

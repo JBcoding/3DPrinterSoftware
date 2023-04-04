@@ -19,10 +19,20 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     total_data += data.decode("utf-8")
                 if "MOB-EOF" in total_data:
                     break
+            solutionWithSmallest = None
+            solutionWithLargest = None
+            valid_solutions = None
             exec(total_data)
             if solutionWithSmallest is not None and solutionWithLargest is not None:
                 output = "{}\n{}\n{}\n{}".format('{:.20f}'.format(solutionWithSmallest[0]), '{:.20f}'.format(solutionWithSmallest[1]), '{:.20f}'.format(solutionWithLargest[0]), '{:.20f}'.format(solutionWithLargest[1]))
                 conn.sendall(output.encode('utf-8'))
+                print("Answer type 1")
+            if valid_solutions is not None:
+                output = ""
+                for solution in valid_solutions:
+                    output += "{}\n{}\n".format('{:.20f}'.format(solution[0]), '{:.20f}'.format(solution[1]))
+                conn.sendall(output.encode('utf-8'))
+                print("Answer type 2")
             else:
                 print("No solution")
             conn.close()

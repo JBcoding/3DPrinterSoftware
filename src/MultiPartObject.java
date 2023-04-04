@@ -83,40 +83,15 @@ public abstract class MultiPartObject {
         }
 
         List<PlaneIntersectionCycle> expandedPlaneIntersectionCycles = PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(extendedCutIntersections);
-        return Optional.of(expandedPlaneIntersectionCycles);
 
-
-        // OLD DEDUB CODE BELOW
-       /* double deltaPrecision = offset / 4;
-        List<List<Point3D>> planeIntersectionPoints = planeIntersections.get().stream().map(pi -> pi.getDeltaPoints(deltaPrecision)).collect(Collectors.toList());
-        List<PlaneIntersection> finalPlaneIntersections = new ArrayList<>();
-        for (PlaneIntersection epi : expandedPlaneIntersections) {
-            boolean currentlyAtDistance = getShortestDistanceBetweenPointsAndPoint(planeIntersectionPoints, epi.getFirstPoint(), deltaPrecision) > offset - deltaPrecision;
-            List<Point3D> points = epi.getDeltaPoints(deltaPrecision);
-            int startPointIndex = 0;
-            for (int i = 0; i < points.size(); i++) {
-                boolean atDistance = getShortestDistanceBetweenPointsAndPoint(planeIntersectionPoints, points.get(i), deltaPrecision) > offset - deltaPrecision;
-                if (atDistance && !currentlyAtDistance) {
-                    // start here
-                    startPointIndex = i;
-                } else if (!atDistance && currentlyAtDistance) {
-                    // end here
-                    finalPlaneIntersections.add(epi.getSubIntersection(
-                            startPointIndex / (double) points.size(),
-                            i / (double) points.size()
-                    ));
-                }
-                currentlyAtDistance = atDistance;
-            }
-            if (currentlyAtDistance) {
-                // end here
-                finalPlaneIntersections.add(epi.getSubIntersection(
-                        startPointIndex / (double) points.size(),
-                        1
-                ));
-            }
+        List<Point3D> points = PlaneIntersectionCycle.findSelfIntersectionPoints(expandedPlaneIntersectionCycles);
+        List<PlaneIntersection> extraDummyVisualisationPis = new ArrayList<>();
+        for (Point3D point3D : points) {
+            PlaneIntersection pidummy = new Segment(point3D, point3D.add(new Point3D(0, 0, 0.2)));
+            extraDummyVisualisationPis.add(pidummy);
         }
-        return Optional.of(finalPlaneIntersections);*/
+        expandedPlaneIntersectionCycles.addAll(PlaneIntersectionCycle.getPlaneIntersectionCyclesFromPlaneIntersections(extraDummyVisualisationPis));
+        return Optional.of(expandedPlaneIntersectionCycles);
     }
 
     private double getShortestDistanceBetweenPointsAndPoint(List<List<Point3D>> points, Point3D point, double deltaPrecision) {
