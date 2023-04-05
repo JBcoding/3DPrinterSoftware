@@ -15,12 +15,22 @@ public class PythonFunctionData {
     double lowerBound;
     double upperBound;
 
+    double originalLowerBound;
+    double originalUpperBound;
+
     public PythonFunctionData(String xt, String yt, String variableName, double lowerBound, double upperBound) {
         this.xt = xt;
         this.yt = yt;
         this.variableName = variableName;
         this.lowerBound = min(lowerBound, upperBound);
         this.upperBound = max(lowerBound, upperBound);
+
+        this.originalLowerBound = lowerBound;
+        this.originalUpperBound = upperBound;
+    }
+
+    public double normalize(double value) {
+        return (value - originalLowerBound) / (originalUpperBound - originalLowerBound);
     }
 
     // TODO(mbjorn): Name things in this class better.....
@@ -30,7 +40,7 @@ public class PythonFunctionData {
                         "\n" +
                         "def equations(p):\n" +
                         "    %s, %s = p\n" +
-                        "    return (%s - %s, %s - %s)\n" +
+                        "    return ((%s) - (%s), (%s) - (%s))\n" +
                         "\n" +
                         "bounds = ((%s, %s), (%s, %s))\n" +
                         "\n" +
@@ -59,9 +69,11 @@ public class PythonFunctionData {
         return String.format("from scipy.optimize import least_squares\n" +
                         "import math\n" +
                         "\n" +
-                        "def equations(p):\n" +
+                        "def equations(p, pr=False):\n" +
                         "    %s, %s = p\n" +
-                        "    return (%s - %s, %s - %s)\n" +
+                        "    if pr:\n" +
+                        "      print((%s), (%s), (%s), (%s))\n" +
+                        "    return ((%s) - (%s), (%s) - (%s))\n" +
                         "\n" +
                         "bounds = ((%s, %s), (%s, %s))\n" +
                         "\n" +
@@ -73,12 +85,13 @@ public class PythonFunctionData {
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
                         "    if res.cost < 0.000001:\n" +
                         "        valid_solutions.append(res.x)\n" +
+                        "        print(equations(res.x, pr=True), res.x)\n" +
                         "    y0 = bounds[1][1] + (bounds[0][1] - bounds[1][1]) * (p / 100.0)\n" +
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
                         "    if res.cost < 0.000001:\n" +
                         "        valid_solutions.append(res.x)\n" +
                         "## MOB-EOF"
-                , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
+                , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
     }
 
     // TODO(mbjorn) Fix so we return proper formatted data in a subclass or something
@@ -97,10 +110,10 @@ public class PythonFunctionData {
             }
 
             double[] data = Arrays.stream(result.split("\n")).mapToDouble(Double::parseDouble).toArray();
-            data[0] = (data[0] - solveFor.lowerBound) / (solveFor.upperBound - solveFor.lowerBound);
-            data[1] = (data[1] - against.lowerBound) / (against.upperBound - against.lowerBound);
-            data[2] = (data[2] - solveFor.lowerBound) / (solveFor.upperBound - solveFor.lowerBound);
-            data[3] = (data[3] - against.lowerBound) / (against.upperBound - against.lowerBound);
+            data[0] = solveFor.normalize(data[0]);
+            data[1] = against.normalize(data[1]);
+            data[2] = solveFor.normalize(data[2]);
+            data[3] = against.normalize(data[3]);
             return data;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -124,8 +137,8 @@ public class PythonFunctionData {
 
             double[] data = Arrays.stream(result.trim().split("\n")).mapToDouble(Double::parseDouble).toArray();
             for (int i = 0; i < data.length; i += 2) {
-                data[i] = (data[i] - f1.lowerBound) / (f1.upperBound - f1.lowerBound);
-                data[i + 1] = (data[i + 1] - f2.lowerBound) / (f2.upperBound - f2.lowerBound);
+                data[i] = f1.normalize(data[i]);
+                data[i + 1] = f2.normalize(data[i + 1]);
             }
             return data;
         } catch (IOException e) {

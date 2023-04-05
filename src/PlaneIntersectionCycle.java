@@ -21,21 +21,21 @@ public class PlaneIntersectionCycle {
                     double[] data = PythonFunctionData.findAllIntersections(f1, f2);
                     List<Point3D> points = new ArrayList<>();
                     for (int i = 0; i < data.length; i+=2) {
-                        if ((data[i] < 0.05 || data[i] > 0.95) && (data[i + 1] < 0.05 || data[i + 1] > 0.95)) {
+                        if ((data[i] < 0.001 || data[i] > 0.999) && (data[i + 1] < 0.001 || data[i + 1] > 0.999)) {
                             // TODO(mbjorn) check if these have endpoints meeting from the cycle
                             // For now we just assume they do
                         } else {
                             Point3D p1 = pi1.getPoint(data[i]);
                             Point3D p2 = pi2.getPoint(data[i + 1]);
 
-                            //if (Utils.isRoughZero(p1.subtract(p2).distance0())) {
+                            if (Utils.isRoughZero(p1.subtract(p2).distance0())) {
                                 points.add(pi1.getPoint(data[i]));
                                 points.add(pi2.getPoint(data[i + 1]));
                                 System.out.println(pi1.getPoint(data[i]));
                                 System.out.println(pi2.getPoint(data[i + 1]));
                                 System.out.println(p1.subtract(p2).distance0());
                                 System.out.println("");
-                            //}
+                            }
                         }
                     }
                     allPoints.addAll(points);
