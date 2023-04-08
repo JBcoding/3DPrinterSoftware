@@ -1,6 +1,5 @@
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PlaneIntersectionCycle {
     private final List<PlaneIntersection> cycle;
@@ -9,40 +8,53 @@ public class PlaneIntersectionCycle {
         this.cycle = cycle;
     }
 
-    public static List<Point3D> findSelfIntersectionPoints(List<PlaneIntersectionCycle> planeCycles) {
-        List<Point3D> allPoints = new ArrayList<>();
-        List<PlaneIntersection> planeIntersections = planeCycles.stream().flatMap(cycle -> cycle.cycle.stream()).collect(Collectors.toList());
-        for (PlaneIntersection pi1 : planeIntersections) {
-            for (PlaneIntersection pi2 : planeIntersections) {
-                // TODO (mbjorn): Figure out how to compare intersections with itself, it can have self intersections (maybe bounds that never overlaps)
-                if (pi1 != pi2) { // Yes object level comparison
-                    PythonFunctionData f1 = pi1.getPythonFunctionData("g");
-                    PythonFunctionData f2 = pi2.getPythonFunctionData("f");
-                    double[] data = PythonFunctionData.findAllIntersections(f1, f2);
-                    List<Point3D> points = new ArrayList<>();
-                    for (int i = 0; i < data.length; i+=2) {
-                        if ((data[i] < 0.001 || data[i] > 0.999) && (data[i + 1] < 0.001 || data[i + 1] > 0.999)) {
-                            // TODO(mbjorn) check if these have endpoints meeting from the cycle
-                            // For now we just assume they do
-                        } else {
-                            Point3D p1 = pi1.getPoint(data[i]);
-                            Point3D p2 = pi2.getPoint(data[i + 1]);
+    private static boolean isFalsePositiveSelfIntersectionPoint(PlaneIntersection pi1, PlaneIntersection pi2, List<PlaneIntersectionCycle> planeCycles, double pi1_percentage, double pi2_percentage) {
+        // It is a false positive if pi1 and pi2 are the same segment and the points are the same percentage
+        if (pi1 == pi2 && Utils.isRoughZero(pi1_percentage - pi2_percentage)) {
+            return true;
+        }
 
-                            if (Utils.isRoughZero(p1.subtract(p2).distance0())) {
-                                points.add(pi1.getPoint(data[i]));
-                                points.add(pi2.getPoint(data[i + 1]));
-                                System.out.println(pi1.getPoint(data[i]));
-                                System.out.println(pi2.getPoint(data[i + 1]));
-                                System.out.println(p1.subtract(p2).distance0());
-                                System.out.println("");
-                            }
-                        }
-                    }
-                    allPoints.addAll(points);
+        // It is also a false positive if pi1 and pi2 are after each other in a cycle and this is just the intersection point
+        for (PlaneIntersectionCycle cycle : planeCycles) {
+            for (int i = 0; i < cycle.cycle.size(); i++) {
+                PlaneIntersection cpi1 = cycle.cycle.get(i);
+                PlaneIntersection cpi2 = cycle.cycle.get((i + 1) % cycle.cycle.size());
+                if (pi1 == cpi1 && pi2 == cpi2 && pi1_percentage > 0.95 && pi2_percentage < 0.05) {
+                    return true;
+                }
+                if (pi1 == cpi2 && pi2 == cpi1 && pi1_percentage < 0.05 && pi2_percentage > 0.95) {
+                    return true;
                 }
             }
         }
-        return allPoints;
+        return false;
+    }
+
+    public static List<PlaneIntersectionCycle> cutAtSelfIntersectionPoints(List<PlaneIntersectionCycle> planeCycles) {
+        List<Point3D> allPoints = new ArrayList<>();
+        List<PlaneIntersection> planeIntersections = planeCycles.stream().flatMap(cycle -> cycle.cycle.stream()).collect(Collectors.toList());
+        for (int i = 0; i < planeIntersections.size(); i++) {
+            for (int j = 0; j < i + 1; j++) {
+                PlaneIntersection pi1 = planeIntersections.get(i);
+                PlaneIntersection pi2 = planeIntersections.get(j);
+                PythonFunctionData f1 = pi1.getPythonFunctionData("g");
+                PythonFunctionData f2 = pi2.getPythonFunctionData("f");
+                double[] data = PythonFunctionData.findAllIntersections(f1, f2);
+                List<Point3D> points = new ArrayList<>();
+                for (int k = 0; k < data.length; k+=2) {
+                    if (!isFalsePositiveSelfIntersectionPoint(pi1, pi2, planeCycles, data[k], data[k + 1])) {
+                        Point3D p1 = pi1.getPoint(data[k]);
+                        Point3D p2 = pi2.getPoint(data[k + 1]);
+
+                        points.add(p1);
+                        points.add(p2);
+                    }
+                }
+                allPoints.addAll(Point3D.clusterAndAvgPoints(points));
+                System.out.println(Point3D.clusterAndAvgPoints(points));
+            }
+        }
+        return planeCycles;
     }
 
     public List<PlaneIntersection> getPlaneIntersections() {

@@ -191,13 +191,8 @@ public class DisplayWindow extends JPanel implements GLEventListener {
             Optional<List<PlaneIntersectionCycle>> intersection = b.getPlaneIntersection(p);
             List<PlaneIntersectionCycle> intersectionToDraw = new ArrayList<>();
             if (intersection.isPresent()) {
-                for (PlaneIntersectionCycle pic : intersection.get()) {
-                    intersectionToDraw.add(pic);
-                    intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, -.05).get());
-                    //intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, -.1).get());
-                    //intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, .15).get());
-                    //intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(pic, .2).get());
-                }
+                intersectionToDraw.addAll(intersection.get());
+                intersectionToDraw.addAll(b.getPlaneIntersectionWithOffset(intersection.get(), .25).get());
             }
             for (PlaneIntersectionCycle pic : intersectionToDraw) {
                 for (PlaneIntersection pi : pic.getPlaneIntersections()) {

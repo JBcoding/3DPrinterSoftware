@@ -76,4 +76,30 @@ public class Point3D {
     public double dot(Vector3D v) {
         return v.dot(this);
     }
+
+    public static List<Point3D> clusterAndAvgPoints(List<Point3D> allPoints) {
+        List<List<Point3D>> pointClusters = new ArrayList<>();
+        for (Point3D point : allPoints) {
+            boolean foundMatch = false;
+            for (List<Point3D> pointCluster : pointClusters) {
+                if (Utils.isRoughZero(pointCluster.get(0).subtract(point).distance0())) {
+                    pointCluster.add(point);
+                    foundMatch = true;
+                    break;
+                }
+            }
+            if (!foundMatch) {
+                pointClusters.add(new ArrayList<>() {{add(point);}});
+            }
+        }
+        List<Point3D> points = new ArrayList<>();
+        for (List<Point3D> pointCluster : pointClusters) {
+            points.add(new Point3D(
+                    pointCluster.stream().mapToDouble(Point3D::getX).sum() / pointCluster.size(),
+                    pointCluster.stream().mapToDouble(Point3D::getY).sum() / pointCluster.size(),
+                    pointCluster.stream().mapToDouble(Point3D::getZ).sum() / pointCluster.size()
+            ));
+        }
+        return points;
+    }
 }

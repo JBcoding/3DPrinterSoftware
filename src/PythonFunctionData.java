@@ -69,10 +69,8 @@ public class PythonFunctionData {
         return String.format("from scipy.optimize import least_squares\n" +
                         "import math\n" +
                         "\n" +
-                        "def equations(p, pr=False):\n" +
+                        "def equations(p):\n" +
                         "    %s, %s = p\n" +
-                        "    if pr:\n" +
-                        "      print((%s), (%s), (%s), (%s))\n" +
                         "    return ((%s) - (%s), (%s) - (%s))\n" +
                         "\n" +
                         "bounds = ((%s, %s), (%s, %s))\n" +
@@ -85,13 +83,18 @@ public class PythonFunctionData {
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
                         "    if res.cost < 0.000001:\n" +
                         "        valid_solutions.append(res.x)\n" +
-                        "        print(equations(res.x, pr=True), res.x)\n" +
                         "    y0 = bounds[1][1] + (bounds[0][1] - bounds[1][1]) * (p / 100.0)\n" +
                         "    res = least_squares(equations, (x0, y0), bounds = bounds)\n" +
                         "    if res.cost < 0.000001:\n" +
                         "        valid_solutions.append(res.x)\n" +
+                        "    t_b = [[bounds[0][0], bounds[0][1] + (bounds[1][1] - bounds[0][1]) * p/100.0], [(bounds[1][0] - bounds[0][0]) * p/100.0 + bounds[0][0], bounds[1][1]]]\n" +
+                        "    x0 = (t_b[0][0] + t_b[1][0]) / 2\n" +
+                        "    y0 = (t_b[0][1] + t_b[1][1]) / 2\n" +
+                        "    res = least_squares(equations, (x0, y0), bounds = t_b)\n" +
+                        "    if res.cost < 0.000001:\n" +
+                        "        valid_solutions.append(res.x)\n" +
                         "## MOB-EOF"
-                , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
+                , f1.variableName, f2.variableName, f1.xt, f2.xt, f1.yt, f2.yt, f1.lowerBound, f2.lowerBound, f1.upperBound, f2.upperBound);
     }
 
     // TODO(mbjorn) Fix so we return proper formatted data in a subclass or something
